@@ -24,41 +24,17 @@ public final class Listeners {
 
     @Listener
     public void onInteractBlockPrimary(InteractBlockEvent.Primary.Start event, @Root ServerPlayer player) {
-        event.block().location().ifPresent(l -> preInteract(event, l)); //TODO: Preview
+        event.block().location().flatMap(l -> preInteract(event, l)).ifPresent(t ->
+                Utils.preview(t.first(), Inventory.CLOSE).open(player)
+        );
     }
 
     @Listener
     public void onInteractBlockSecondary(InteractBlockEvent.Secondary event, @Root ServerPlayer player) {
         event.block().location().flatMap(l -> preInteract(event, l)).ifPresent(t -> {
-            var missing = t.first().keys().stream()
-                .filter(k -> !k.first().check(player.user(), k.second()))
-                .toList();
-            if (missing.isEmpty()) {
-                var taken = new ArrayList<Tuple<? extends Key, Integer>>();
-                for (var key : t.first().keys()) {
-                    if (!key.first().take(player.user(), key.second())) {
-                        if (taken.isEmpty()) {
-                            player.sendMessage(Component.text("One of the keys could not be taken. No keys were taken from you."));
-                        } else {
-                            CrateCrate.container().logger().error("Incomplete transaction for player " + player.name() + ": " + taken.stream()
-                                .map(k -> k.first().id() + " (x" + k.second() + ")")
-                                .collect(Collectors.joining(", ")));
-                            player.sendMessage(Component.text("One of the keys could not be taken. Please contact an admin to restore the following keys: ")
-                                .append(Component.join(Component.text(", "), taken.stream()
-                                    .map(k -> k.first().name(Optional.of(k.second())))
-                                    .toList())));
-                        }
-                        return;
-                    }
-                    taken.add(key);
-                }
-                t.first().open(player, t.second());
-            } else {
-                player.sendMessage(Identity.nil(), Component.text("Missing the following keys: ")
-                    .append(Component.join(Component.text(", "), missing.stream()
-                        .map(k -> k.first().name(Optional.of(k.second())))
-                        .toList())));
-            }
+           if(Utils.checkKeys(player, t.first())) {
+               Utils.confirm(t).open(player);
+           }
         });
     }
 

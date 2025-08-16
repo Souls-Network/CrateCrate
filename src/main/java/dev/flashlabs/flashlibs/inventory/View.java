@@ -38,7 +38,7 @@ public final class View {
                 .item(ItemStackSnapshot.empty())
                 .completeStructure()
                 .plugin(container).build();
-        menu = b.asMenu();
+        menu = inventory.asMenu();
         menu.registerSlotClick(new SlotClickHandler() {
                     @Override
                     public boolean handle(Cause cause, Container container, Slot slot, int slotIndex, ClickType<?> clickType) {
@@ -99,14 +99,14 @@ public final class View {
     private boolean onClick(Cause cause, Container container, Slot slot, int slotIndex, ClickType<?> clickType) {
         cause.first(ServerPlayer.class).ifPresent(player -> {
             if (elements.containsKey(slotIndex)) {
-                elements.get(slotIndex).onClick(clickType, player, container, this, slot, slotIndex);
+                elements.get(slotIndex).onClick(new Action.Click(player, this, slot, slotIndex, clickType));
             }
         });
 
         return false;
     }
 
-    void execute(Consumer<View> callback) {
+    public void execute(Consumer<View> callback) {
         var task = Task.builder().execute(() -> callback.accept(this)).plugin(container).build();
         Sponge.server().scheduler().submit(task);
     }

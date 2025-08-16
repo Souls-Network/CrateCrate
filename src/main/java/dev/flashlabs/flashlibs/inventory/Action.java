@@ -1,8 +1,11 @@
 package dev.flashlabs.flashlibs.inventory;
 
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.item.inventory.container.ClickContainerEvent;
 import org.spongepowered.api.event.item.inventory.container.InteractContainerEvent;
+import org.spongepowered.api.item.inventory.Slot;
+import org.spongepowered.api.item.inventory.menu.ClickType;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 
 import java.util.function.Consumer;
@@ -11,30 +14,19 @@ import java.util.function.Consumer;
  * Represents an active inventory event connected to a {@link View}, such as
  * opening/closing the inventory or clicking a slot.
  */
-public class Action<T extends InteractContainerEvent> {
-
-    private final T event;
-    private final Player player;
+public class Action {
+    private final ServerPlayer player;
     private final View view;
 
-    Action(T event, Player player, View view) {
-        this.event = event;
+    Action(ServerPlayer player, View view) {
         this.player = player;
         this.view = view;
     }
 
     /**
-     * Returns the inventory event, which is initially cancelled for
-     * {@link Click}s.
-     */
-    public final T getEvent() {
-        return event;
-    }
-
-    /**
      * Returns the player causing this event.
      */
-    public final Player getPlayer() {
+    public final ServerPlayer getPlayer() {
         return player;
     }
 
@@ -54,22 +46,24 @@ public class Action<T extends InteractContainerEvent> {
      * incoming event is always cancelled, but can be uncanceled to allow the
      * event to proceed.
      */
-    public static final class Click extends Action<ClickContainerEvent> {
+    public static final class Click extends Action {
 
-        private final SlotTransaction slot;
+        private final Slot slot;
         private final int index;
+        private final ClickType<?> clickType;
 
-        Click(ClickContainerEvent event, Player player, View view, SlotTransaction slot, int index) {
-            super(event, player, view);
+        Click(ServerPlayer player, View view, Slot slot, int index, ClickType<?> clickType) {
+            super(player, view);
             this.slot = slot;
             this.index = index;
+            this.clickType = clickType;
         }
 
         /**
          * Returns the slot transaction corresponding to this click. The result
          * can only be modified if the event is not cancelled.
          */
-        public SlotTransaction getSlot() {
+        public Slot getSlot() {
             return slot;
         }
 
@@ -80,6 +74,9 @@ public class Action<T extends InteractContainerEvent> {
             return index;
         }
 
+        public ClickType<?> getClickType() {
+            return clickType;
+        }
     }
 
 }

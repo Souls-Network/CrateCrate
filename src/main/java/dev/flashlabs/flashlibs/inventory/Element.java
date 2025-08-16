@@ -20,9 +20,9 @@ public final class Element {
     public static final Element EMPTY = of(ItemStack.empty());
 
     private final ItemStackSnapshot item;
-    private final ClickAction onClick;
+    private final Consumer<Action.Click> onClick;
 
-    private Element(ItemStack item, ClickAction onClick) {
+    private Element(ItemStack item, Consumer<Action.Click> onClick) {
         this.item = item.createSnapshot();
         this.onClick = onClick;
     }
@@ -31,13 +31,13 @@ public final class Element {
      * Creates an Element with the given item and no action.
      */
     public static Element of(ItemStack item) {
-        return new Element(item, (clickType, player, container, view, slot, slotIndex) -> {});
+        return new Element(item, a -> {});
     }
 
     /**
      * Creates an Element with the given item and click action.
      */
-    public static Element of(ItemStack item, ClickAction onClick) {
+    public static Element of(ItemStack item, Consumer<Action.Click> onClick) {
         return new Element(item, onClick);
     }
 
@@ -45,12 +45,7 @@ public final class Element {
         return item;
     }
 
-    void onClick(ClickType<?> clickType, ServerPlayer player, Container container, View view, Slot slot, int slotIndex) {
-        onClick.onClick(clickType, player, container, view, slot, slotIndex);
-    }
-
-    @FunctionalInterface
-    public interface ClickAction {
-        public void onClick(ClickType<?> clickType, ServerPlayer player, Container container, View view, Slot slot, int slotIndex);
+    void onClick(Action.Click click) {
+        onClick.accept(click);
     }
 }

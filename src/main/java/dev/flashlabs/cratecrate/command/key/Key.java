@@ -9,6 +9,7 @@ public final class Key {
         .addChild(Balance.COMMAND, "balance")
         .addChild(Give.COMMAND, "give")
         .addChild(Take.COMMAND, "take")
+        .addChild(List.COMMAND, "list")
         .build();
 
 }

@@ -13,6 +13,7 @@ import dev.flashlabs.cratecrate.component.prize.Prize;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Listeners;
 import dev.flashlabs.cratecrate.internal.Storage;
+import dev.flashlabs.flashlibs.plugin.PluginInstance;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.event.Listener;
@@ -24,16 +25,14 @@ import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.builtin.jvm.Plugin;
 
 @Plugin("cratecrate")
-public final class CrateCrate {
+public final class CrateCrate extends PluginInstance {
 
     private static CrateCrate instance;
 
-    private final PluginContainer container;
-
     @Inject
     private CrateCrate(PluginContainer container) {
+        super(container);
         instance = this;
-        this.container = container;
     }
 
     @Listener
@@ -67,11 +66,10 @@ public final class CrateCrate {
 
     @Listener
     public void onRegisterCommands(RegisterCommandEvent<Command.Parameterized> event) {
-        event.register(CrateCrate.container(), Base.COMMAND, "cratecrate", "crate");
+        event.register(getContainer(), Base.COMMAND, "cratecrate", "crate");
     }
 
-    public static PluginContainer container() {
-        return instance.container;
+    public static CrateCrate get() {
+        return instance;
     }
-
 }
