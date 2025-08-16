@@ -22,7 +22,7 @@ public final class Storage {
     public static final Map<ServerLocation, Optional<Crate>> LOCATIONS = new HashMap<>();
 
     private static final Path DIRECTORY = Sponge.configManager()
-        .pluginConfig(CrateCrate.container())
+        .pluginConfig(CrateCrate.get().getContainer())
         .directory()
         .resolve("storage");
     private static DataSource source;
@@ -61,15 +61,15 @@ public final class Storage {
                         var crate = Optional.ofNullable(Config.CRATES.get(result.getString(5)));
                         LOCATIONS.put(location, crate);
                         if (crate.isEmpty()) {
-                            CrateCrate.container().logger().error("Location is set to unknown crate: " + result.getString(5) + ".");
+                            CrateCrate.get().logger().error("Location is set to unknown crate: " + result.getString(5) + ".");
                         }
                     } else {
-                        CrateCrate.container().logger().error("Location is set to unknown world: " + result.getString(1) + ".");
+                        CrateCrate.get().logger().error("Location is set to unknown world: " + result.getString(1) + ".");
                     }
                 }
             }
         } catch (ClassNotFoundException | IOException | SQLException e) {
-            CrateCrate.container().logger().error("Error loading storage: ", e);
+            CrateCrate.get().logger().error("Error loading storage: ", e);
         }
     }
 
@@ -114,6 +114,7 @@ public final class Storage {
             statement.setInt(4, location.blockZ());
             statement.setString(5, crate.id());
             statement.executeUpdate();
+            LOCATIONS.put(location, Optional.of(crate));
         }
     }
 
@@ -128,6 +129,7 @@ public final class Storage {
             statement.setInt(3, location.blockY());
             statement.setInt(4, location.blockZ());
             statement.executeUpdate();
+            LOCATIONS.remove(location);
         }
     }
 

@@ -1,5 +1,6 @@
 package dev.flashlabs.cratecrate.command.location;
 
+import dev.flashlabs.cratecrate.command.CommandUtils;
 import dev.flashlabs.cratecrate.component.Crate;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Storage;
@@ -17,6 +18,12 @@ import java.sql.SQLException;
 import java.util.Optional;
 
 public final class Set {
+    public static final Component USAGE = CommandUtils.usage(
+            "/crate location set ",
+            "Sets a registered crate location.",
+            CommandUtils.argument("location", true, "A world (optional for players) and xyz position."),
+            CommandUtils.argument("crate", true, "A registered crate id.")
+    );
 
     public static Command.Parameterized COMMAND = Command.builder()
         .permission("cratecrate.command.location.set.base")

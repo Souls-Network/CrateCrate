@@ -1,5 +1,6 @@
 package dev.flashlabs.cratecrate.command.reward;
 
+import dev.flashlabs.cratecrate.command.CommandUtils;
 import dev.flashlabs.cratecrate.component.Reward;
 import dev.flashlabs.cratecrate.internal.Config;
 import net.kyori.adventure.identity.Identity;
@@ -15,6 +16,12 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 public final class Give {
+    public static final Component USAGE = CommandUtils.usage(
+            "/crate prize give ",
+            "Gives a reward to a user.",
+            CommandUtils.argument("user", false, "A username or selector matching a single user (online/offline), defaulting to the player executing this command."),
+            CommandUtils.argument("reward", true, "A registered reward id.")
+    );
 
     public static Command.Parameterized COMMAND = Command.builder()
         .permission("cratecrate.command.reward.give.base")

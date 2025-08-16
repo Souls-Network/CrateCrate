@@ -1,6 +1,7 @@
 package dev.flashlabs.cratecrate.command.crate;
 
 import dev.flashlabs.cratecrate.CrateCrate;
+import dev.flashlabs.cratecrate.command.CommandUtils;
 import dev.flashlabs.cratecrate.component.key.Key;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Inventory;
@@ -25,6 +26,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class List {
+    public static final Component USAGE = CommandUtils.usage(
+            "/crate crate list ",
+            "Gives a reward to a player as if given through this crate.",
+            CommandUtils.argument("--text", false, "List crates through text rather than GUI (always enabled for console).")
+    );
+
     public static Command.Parameterized COMMAND = Command.builder()
             .permission("cratecrate.command.crate.list.base")
             .executor(List::execute)
@@ -47,7 +54,7 @@ public class List {
             ).open(player);
         } else {
             //TODO
-            throw new CommandException(CrateCrate.get().getMessage("command.crate.list.player-only", ((LocaleSource) audience).locale()));
+            throw new CommandException(CrateCrate.get().getMessage("command.crate.list.player-only", ((LocaleSource) context.cause().audience()).locale()));
         }
 
         return CommandResult.success();

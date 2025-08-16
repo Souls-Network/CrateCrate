@@ -1,6 +1,7 @@
 package dev.flashlabs.cratecrate.command.key;
 
 import dev.flashlabs.cratecrate.CrateCrate;
+import dev.flashlabs.cratecrate.command.CommandUtils;
 import dev.flashlabs.cratecrate.component.key.Key;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Inventory;
@@ -22,6 +23,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class List {
+    public static final Component USAGE = CommandUtils.usage(
+            "/crate key list ",
+            "Lists all of a user's keys.",
+            CommandUtils.argument("user", false, "A username or selector matching a single user (online/offline), defaulting to the player executing this command."),
+            CommandUtils.argument("--text", false, "List crates through text rather than GUI (always enabled for console).")
+    );
+
     public static Command.Parameterized COMMAND = Command.builder()
             .permission("cratecrate.command.key.list.base")
             .addParameter(Parameter.user().key("user").build())

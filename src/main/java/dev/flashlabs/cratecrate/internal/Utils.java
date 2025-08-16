@@ -10,6 +10,7 @@ import dev.flashlabs.flashlibs.inventory.Element;
 import dev.flashlabs.flashlibs.inventory.Page;
 import dev.flashlabs.flashlibs.inventory.View;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.LinearComponents;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.item.ItemTypes;
@@ -72,12 +73,11 @@ public final class Utils {
                 .toList();
         if (!missing.isEmpty()) {
             CrateCrate.get().sendMessage(player, "interact.keys.missing",
-                    "keys", LinearComponents.linear(component -> {
-                        component.append(Component.text(", "));
-                        component.append(missing.stream()
+                    "keys", Component.join(
+                                    JoinConfiguration.separator(Component.text(", ")),
+                                    missing.stream()
                                 .map(k -> k.first().name(Optional.of(k.second())))
-                                .collect(Collectors.toList()));
-                    }));
+                                .collect(Collectors.toList())));
         }
 
         return missing.isEmpty();
@@ -94,12 +94,11 @@ public final class Utils {
                             .map(k -> k.first().id() + " (x" + k.second() + ")")
                             .collect(Collectors.joining(", ")));
                     CrateCrate.get().sendMessage(player, "interact.keys.take.incomplete",
-                            "keys", LinearComponents.linear(component -> {
-                                component.append(Component.text(", "));
-                                component.append(taken.stream()
+                            "keys", Component.join(
+                                JoinConfiguration.separator(Component.text(", ")),
+                                taken.stream()
                                         .map(k -> k.first().name(Optional.of(k.second())))
-                                        .toList());
-                            }));
+                                        .toList()));
                 }
                 return false;
             }

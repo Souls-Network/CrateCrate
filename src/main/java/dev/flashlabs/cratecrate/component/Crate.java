@@ -100,10 +100,10 @@ public final class Crate extends Component<Void> {
     }
 
     public boolean open(ServerPlayer player, ServerLocation location) {
-        return give(player, location, roll(player));
+        return give(player, roll(player), location);
     }
 
-    public boolean give(ServerPlayer player, ServerLocation location, Tuple<? extends Reward, BigDecimal> reward) {
+    public boolean give(ServerPlayer player, Tuple<? extends Reward, BigDecimal> reward, ServerLocation location) {
         return reward.first().give(player.user());
     }
 
@@ -127,7 +127,7 @@ public final class Crate extends Component<Void> {
     public static final class CrateType extends Type<Crate, Void> {
 
         private CrateType() {
-            super("Crate", CrateCrate.container());
+            super("Crate", CrateCrate.get().getContainer());
         }
 
         @Override

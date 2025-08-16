@@ -18,6 +18,11 @@ import org.spongepowered.api.command.parameter.CommandContext;
 import java.util.List;
 
 public final class Base {
+    public static final Component USAGE = CommandUtils.usage(
+            "/crate ",
+            "The base command for CrateCrate.",
+            CommandUtils.argument("...", false, "A subcommand (crate/key/location/prize/reward).")
+    );
 
     public static Command.Parameterized COMMAND = Command.builder()
         .permission("cratecrate.command.base")
@@ -30,18 +35,7 @@ public final class Base {
         .build();
 
     private static CommandResult execute(CommandContext context) {
-        var messages = List.of(
-            Component.text("CrateCrate v" + CrateCrate.container().metadata().version()),
-            Component.text("GitHub: ").append(Component.text()
-                .content("https://github.com/flash-labs/CrateCrate")
-                .style(Style.style(TextDecoration.UNDERLINED, ClickEvent.openUrl("https://github.com/flash-labs/CrateCrate")))
-                .build()),
-            Component.text("Discord: ").append(Component.text()
-                .content("https://discord.gg/zWqnAa9KRn")
-                .style(Style.style(TextDecoration.UNDERLINED, ClickEvent.openUrl("https://discord.gg/zWqnAa9KRn")))
-                .build())
-        );
-        messages.forEach(m -> context.sendMessage(Identity.nil(), m));
+        CommandUtils.paginate(context.cause().audience(), Base.USAGE, Crate.USAGE, Key.USAGE, Location.USAGE, Prize.USAGE, Reward.USAGE);
         return CommandResult.success();
     }
 

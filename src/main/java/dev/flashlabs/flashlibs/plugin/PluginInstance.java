@@ -6,18 +6,14 @@ import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.util.locale.LocaleSource;
 import org.spongepowered.plugin.PluginContainer;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Locale;
-import java.util.Optional;
 
 /**
  * A superclass for plugin instances that manages common resources such as
@@ -61,7 +57,7 @@ public abstract class PluginInstance {
         return container;
     }
 
-    public final Logger getLogger() {
+    public final Logger logger() {
         return logger;
     }
 

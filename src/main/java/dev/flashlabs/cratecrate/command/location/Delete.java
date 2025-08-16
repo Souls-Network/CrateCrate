@@ -1,5 +1,6 @@
 package dev.flashlabs.cratecrate.command.location;
 
+import dev.flashlabs.cratecrate.command.CommandUtils;
 import dev.flashlabs.cratecrate.internal.Storage;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
@@ -13,6 +14,12 @@ import org.spongepowered.api.world.server.ServerLocation;
 import java.sql.SQLException;
 
 public final class Delete {
+    public static final Component USAGE = CommandUtils.usage(
+            "/crate location delete ",
+            "Deletes a registered crate location.",
+            CommandUtils.argument("location", true, "A world (optional for players) and xyz position."),
+            CommandUtils.argument("crate", true, "A registered crate id.")
+    );
 
     public static Command.Parameterized COMMAND = Command.builder()
         .permission("cratecrate.command.location.delete.base")

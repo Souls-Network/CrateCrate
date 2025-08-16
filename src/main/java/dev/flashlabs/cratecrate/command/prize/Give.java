@@ -1,5 +1,6 @@
 package dev.flashlabs.cratecrate.command.prize;
 
+import dev.flashlabs.cratecrate.command.CommandUtils;
 import dev.flashlabs.cratecrate.component.prize.CommandPrize;
 import dev.flashlabs.cratecrate.component.prize.ItemPrize;
 import dev.flashlabs.cratecrate.component.prize.MoneyPrize;
@@ -20,6 +21,13 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 public final class Give {
+    public static final Component USAGE = CommandUtils.usage(
+            "/crate prize give ",
+            "Gives a prize to a user.",
+            CommandUtils.argument("user", false, "A username or selector matching a single user (online/offline), defaulting to the player executing this command."),
+            CommandUtils.argument("prize", true, "A registered prize id."),
+            CommandUtils.argument("value", false, "A reference value for the prize (varies by type).\n\n - Command: The ${value} placeholder\n - Item: The integer quantity\n - Money: The decimal amount")
+    );
 
     public static Command.Parameterized COMMAND = Command.builder()
         .permission("cratecrate.command.prize.give.base")
