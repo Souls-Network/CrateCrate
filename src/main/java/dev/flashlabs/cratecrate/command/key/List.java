@@ -27,7 +27,7 @@ public class List {
             "/crate key list ",
             "Lists all of a user's keys.",
             CommandUtils.argument("user", false, "A username or selector matching a single user (online/offline), defaulting to the player executing this command."),
-            CommandUtils.argument("--text", false, "List crates through text rather than GUI (always enabled for console).")
+            CommandUtils.argument("--text", false, "List keys through text rather than GUI (always enabled for console).")
     );
 
     public static Command.Parameterized COMMAND = Command.builder()

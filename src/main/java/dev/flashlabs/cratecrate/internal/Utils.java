@@ -48,7 +48,7 @@ public final class Utils {
         );
     }
 
-    public static View confirm(Tuple<Crate, ServerLocation crate) {
+    public static View confirm(Tuple<Crate, ServerLocation> crate) {
         return Inventory.menu(crate.first().name(Optional.empty()), ImmutableMap.of(
                 10, Element.of(Inventory.item(ItemTypes.SLIME_BALL.get(), Component.text("Confirm")), a -> a.callback(v -> {
                     a.getPlayer().closeInventory();

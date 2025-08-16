@@ -44,10 +44,13 @@ public class List {
             Inventory.page(
                     Component.text("Available Crates"),
                     Config.CRATES.values().stream()
+                            .filter(c -> player.hasPermission("cratecrate.crates." + c.id() + ".base"))
                             .map(c -> Element.of(c.icon(Optional.empty()), a -> a.callback(v -> {
-                                Utils.preview(c, Element.of(Inventory.item(ItemTypes.CHEST.get(), Component.text("Available Crates")), a2 -> a2.callback(v2 -> {
-                                    v.open(player);
-                                }))).open(a.getPlayer());
+                                if (player.hasPermission("cratecrate.crates." + c.id() + ".preview")) {
+                                    Utils.preview(c, Element.of(Inventory.item(ItemTypes.CHEST.get(), Component.text("Available Crates")), a2 -> a2.callback(v2 -> {
+                                        v.open(player);
+                                    }))).open(a.getPlayer());
+                                }
                             })))
                             .collect(Collectors.toList()),
                     Inventory.CLOSE
