@@ -76,8 +76,8 @@ public final class Config {
         return (Type<? extends Crate, Void>) Config.<Crate>resolveType(node, Crate.class, Crate.TYPES, CRATES);
     }
 
-    public static Type<? extends Reward, BigDecimal> resolveRewardType(ConfigurationNode node) throws SerializationException {
-        return (Type<? extends Reward, BigDecimal>) Config.<Reward>resolveType(node, Reward.class, Reward.TYPES, REWARDS);
+    public static Type<Reward, BigDecimal> resolveRewardType(ConfigurationNode node) throws SerializationException {
+        return (Type<Reward, BigDecimal>) Config.<Reward>resolveType(node, Reward.class, Reward.TYPES, REWARDS);
     }
 
     public static Type<? extends Prize, ?> resolvePrizeType(ConfigurationNode node) throws SerializationException {

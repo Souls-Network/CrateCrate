@@ -9,6 +9,8 @@ import dev.flashlabs.cratecrate.internal.Utils;
 import dev.flashlabs.flashlibs.inventory.Element;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.LinearComponents;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.CommandResult;
@@ -17,6 +19,7 @@ import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
+import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.util.locale.LocaleSource;
 
 import java.util.UUID;
@@ -44,7 +47,7 @@ public class List {
 
         if (audience instanceof ServerPlayer player) {
             Inventory.page(
-                    Component.text(user.name() + "'s Keys"),
+                    LinearComponents.linear(NamedTextColor.YELLOW, Component.text(user.name()), NamedTextColor.GOLD, Component.text("'s Keys")),
                     Config.KEYS.values().stream()
                             .map(c -> Element.of(c.icon(c.quantity(user))))
                             .filter(e -> e.getItem().quantity() > 0)
@@ -52,9 +55,13 @@ public class List {
                     Inventory.CLOSE
             ).open(player);
         } else {
-            //TODO
-            throw new CommandException(CrateCrate.get().getMessage("command.key.list.other.no-permission", ((LocaleSource) context.cause().audience()).locale(),
-                "user", user.name()));
+            PaginationList.builder()
+                    .title(LinearComponents.linear(NamedTextColor.YELLOW, Component.text(user.name()), NamedTextColor.GOLD, Component.text("'s Keys")))
+                    .padding(Component.text("=", NamedTextColor.GRAY))
+                    .contents(Config.KEYS.values().stream()
+                            .map(k -> k.name(k.quantity(user)))
+                            .toArray(Component[]::new))
+                    .sendTo(context.cause().audience());
         }
 
 

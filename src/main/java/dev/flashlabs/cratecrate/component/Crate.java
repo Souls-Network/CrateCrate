@@ -29,7 +29,7 @@ public final class Crate extends Component<Void> {
     private final Optional<List<String>> lore;
     private final Optional<ItemStackSnapshot> icon;
     private final List<Tuple<? extends Key, Integer>> keys;
-    private final List<Tuple<? extends Reward, BigDecimal>> rewards;
+    private final List<Tuple<Reward, BigDecimal>> rewards;
 
     private Crate(
         String id,
@@ -37,7 +37,7 @@ public final class Crate extends Component<Void> {
         Optional<List<String>> lore,
         Optional<ItemStackSnapshot> icon,
         List<Tuple<? extends Key, Integer>> keys,
-        List<Tuple<? extends Reward, BigDecimal>> rewards
+        List<Tuple<Reward, BigDecimal>> rewards
     ) {
         super(id);
         this.name = name;
@@ -89,7 +89,7 @@ public final class Crate extends Component<Void> {
         return keys;
     }
 
-    public List<Tuple<? extends Reward, BigDecimal>> rewards() {
+    public List<Tuple<Reward, BigDecimal>> rewards() {
         return rewards;
     }
 
@@ -156,7 +156,7 @@ public final class Crate extends Component<Void> {
                 var values = key.childrenList().subList(key.isList() ? 1 : 0, key.childrenList().size());
                 keys.add(Config.resolveKeyType(component).deserializeReference(component, values));
             }
-            var rewards = new ArrayList<Tuple<? extends Reward, BigDecimal>>();
+            var rewards = new ArrayList<Tuple<Reward, BigDecimal>>();
             for (ConfigurationNode reward : node.node("rewards").childrenList()) {
                 var component = reward.isList() ? reward.node(0) : reward;
                 var values = reward.childrenList().subList(reward.isList() ? 1 : 0, reward.childrenList().size());

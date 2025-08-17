@@ -9,6 +9,8 @@ import dev.flashlabs.cratecrate.internal.Utils;
 import dev.flashlabs.flashlibs.inventory.Element;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.LinearComponents;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.CommandResult;
@@ -18,6 +20,7 @@ import org.spongepowered.api.command.parameter.Parameter;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.item.ItemTypes;
+import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.util.locale.LocaleSource;
 
 import java.util.Optional;
@@ -42,12 +45,12 @@ public class List {
         if (context.cause().audience() instanceof ServerPlayer player) {
             //TODO: Filter with permission
             Inventory.page(
-                    Component.text("Available Crates"),
+                    LinearComponents.linear(NamedTextColor.YELLOW, Component.text("Available"), NamedTextColor.GOLD, Component.text("Crates")),
                     Config.CRATES.values().stream()
                             .filter(c -> player.hasPermission("cratecrate.crates." + c.id() + ".base"))
                             .map(c -> Element.of(c.icon(Optional.empty()), a -> a.callback(v -> {
                                 if (player.hasPermission("cratecrate.crates." + c.id() + ".preview")) {
-                                    Utils.preview(c, Element.of(Inventory.item(ItemTypes.CHEST.get(), Component.text("Available Crates")), a2 -> a2.callback(v2 -> {
+                                    Utils.preview(c, Element.of(Inventory.item(ItemTypes.CHEST.get(), LinearComponents.linear(NamedTextColor.YELLOW, Component.text("Available"), NamedTextColor.GOLD, Component.text("Crates"))), a2 -> a2.callback(v2 -> {
                                         v.open(player);
                                     }))).open(a.getPlayer());
                                 }
@@ -56,8 +59,14 @@ public class List {
                     Inventory.CLOSE
             ).open(player);
         } else {
-            //TODO
-            throw new CommandException(CrateCrate.get().getMessage("command.crate.list.player-only", ((LocaleSource) context.cause().audience()).locale()));
+            PaginationList.builder()
+                    .title(LinearComponents.linear(NamedTextColor.YELLOW, Component.text("Available"), NamedTextColor.GOLD, Component.text("Crates")))
+                    .padding(Component.text("=", NamedTextColor.GRAY))
+                    .contents(Config.CRATES.values().stream()
+                            .filter(c -> context.hasPermission("cratecrate.crates." + c.id() + ".base"))
+                            .map(c -> c.name(Optional.empty()))
+                            .toArray(Component[]::new))
+                    .sendTo(context.cause().audience());
         }
 
         return CommandResult.success();
