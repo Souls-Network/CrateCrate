@@ -2,7 +2,6 @@ package dev.flashlabs.flashlibs.message;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.google.common.collect.Maps;
 import dev.flashlabs.flashlibs.translation.TranslationService;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
@@ -53,7 +52,7 @@ public final class MessageService {
      * @see TranslationService#getString(String, Locale)
      */
     public MessageTemplate get(String key, Locale locale) {
-        return cache.get(Maps.immutableEntry(key, locale));
+        return cache.get(Map.entry(key, locale));
     }
 
     /**

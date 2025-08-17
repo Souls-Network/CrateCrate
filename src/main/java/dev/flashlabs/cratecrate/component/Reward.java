@@ -1,6 +1,5 @@
 package dev.flashlabs.cratecrate.component;
 
-import com.google.common.collect.ImmutableList;
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.prize.Prize;
 import dev.flashlabs.cratecrate.internal.Config;
@@ -28,16 +27,16 @@ public final class Reward extends Component<BigDecimal> {
     public static final Map<String, Type<? extends Reward, ?>> TYPES = new HashMap<>();
 
     private final Optional<String> name;
-    private final Optional<ImmutableList<String>> lore;
+    private final Optional<List<String>> lore;
     private final Optional<ItemStackSnapshot> icon;
-    private final ImmutableList<Tuple<? extends Prize, ?>> prizes;
+    private final List<Tuple<? extends Prize, ?>> prizes;
 
     private Reward(
         String id,
         Optional<String> name,
-        Optional<ImmutableList<String>> lore,
+        Optional<List<String>> lore,
         Optional<ItemStackSnapshot> icon,
-        ImmutableList<Tuple<? extends Prize, ?>> prizes
+        List<Tuple<? extends Prize, ?>> prizes
     ) {
         super(id);
         this.name = name;
@@ -90,7 +89,7 @@ public final class Reward extends Component<BigDecimal> {
      */
     @Override
     public ItemStack icon(Optional<BigDecimal> weight) {
-        var base = icon.map(ItemStackSnapshot::createStack).orElseGet(() -> {
+        var base = icon.map(ItemStackSnapshot::asMutable).orElseGet(() -> {
             if (prizes.size() == 1) {
                 return prizes.get(0).first().icon(Optional.of(prizes.get(0).second()));
             } else {
@@ -106,7 +105,7 @@ public final class Reward extends Component<BigDecimal> {
         return base;
     }
 
-    public ImmutableList<Tuple<? extends Prize, ?>> prizes() {
+    public List<Tuple<? extends Prize, ?>> prizes() {
         return prizes;
     }
 
@@ -117,7 +116,7 @@ public final class Reward extends Component<BigDecimal> {
     public static final class RewardType extends Type<Reward, BigDecimal> {
 
         public RewardType() {
-            super("Reward", CrateCrate.container());
+            super("Reward", CrateCrate.get().getContainer());
         }
 
         @Override
@@ -140,10 +139,10 @@ public final class Reward extends Component<BigDecimal> {
         public Reward deserializeComponent(ConfigurationNode node) throws SerializationException {
             var name = Optional.ofNullable(node.node("name").get(String.class));
             var lore = node.node("lore").isList()
-                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(ImmutableList::copyOf)
-                : Optional.<ImmutableList<String>>empty();
+                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(List::copyOf)
+                : Optional.<List<String>>empty();
             var icon = node.hasChild("icon")
-                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).createSnapshot())
+                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).asImmutable())
                 : Optional.<ItemStackSnapshot>empty();
             var prizes = new ArrayList<Tuple<? extends Prize, ?>>();
             for (ConfigurationNode prize : node.node("prizes").childrenList()) {
@@ -151,7 +150,7 @@ public final class Reward extends Component<BigDecimal> {
                 var values = prize.childrenList().subList(prize.isList() ? 1 : 0, prize.childrenList().size());
                 prizes.add(Config.resolvePrizeType(component).deserializeReference(component, values));
             }
-            return new Reward(String.valueOf(node.key()), name, lore, icon, ImmutableList.copyOf(prizes));
+            return new Reward(String.valueOf(node.key()), name, lore, icon, List.copyOf(prizes));
         }
 
         @Override
@@ -183,7 +182,7 @@ public final class Reward extends Component<BigDecimal> {
                     reward = new Reward("Reward@" + node.path(), reward.name, reward.lore, reward.icon, reward.prizes);
                 } else {
                     var prize = Config.resolvePrizeType(node).deserializeReference(node, values.subList(0, values.isEmpty() ? 0 : values.size() - 1));
-                    reward = new Reward("Reward@" + node.path(), Optional.empty(), Optional.empty(), Optional.empty(), ImmutableList.of(prize));
+                    reward = new Reward("Reward@" + node.path(), Optional.empty(), Optional.empty(), Optional.empty(), List.of(prize));
                 }
                 Config.REWARDS.put(reward.id, reward);
             } else {
@@ -192,7 +191,7 @@ public final class Reward extends Component<BigDecimal> {
                     reward = Config.REWARDS.get(identifier);
                 } else {
                     var prize = Config.resolvePrizeType(node).deserializeReference(node, values.subList(0, values.isEmpty() ? 0 : values.size() - 1));
-                    reward = new Reward(identifier, Optional.empty(), Optional.empty(), Optional.empty(), ImmutableList.of(prize));
+                    reward = new Reward(identifier, Optional.empty(), Optional.empty(), Optional.empty(), List.of(prize));
                     Config.REWARDS.put(reward.id, reward);
                 }
             }

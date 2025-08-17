@@ -1,6 +1,5 @@
 package dev.flashlabs.cratecrate.component.key;
 
-import com.google.common.collect.ImmutableList;
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.Type;
 import dev.flashlabs.cratecrate.internal.Config;
@@ -26,13 +25,13 @@ public final class StandardKey extends Key {
     public static final Type<StandardKey, Integer> TYPE = new StandardKeyType();
 
     private final Optional<String> name;
-    private final Optional<ImmutableList<String>> lore;
+    private final Optional<List<String>> lore;
     private final Optional<ItemStackSnapshot> icon;
 
     private StandardKey(
         String id,
         Optional<String> name,
-        Optional<ImmutableList<String>> lore,
+        Optional<List<String>> lore,
         Optional<ItemStackSnapshot> icon
     ) {
         super(id);
@@ -57,7 +56,7 @@ public final class StandardKey extends Key {
      */
     @Override
     public List<net.kyori.adventure.text.Component> lore(Optional<Integer> unused) {
-        return lore.orElseGet(ImmutableList::of).stream()
+        return lore.orElseGet(List::of).stream()
             .map(s -> LegacyComponentSerializer.legacyAmpersand().deserialize(s).asComponent())
             .toList();
     }
@@ -71,7 +70,7 @@ public final class StandardKey extends Key {
      */
     @Override
     public ItemStack icon(Optional<Integer> quantity) {
-        var base = icon.map(ItemStackSnapshot::createStack)
+        var base = icon.map(ItemStackSnapshot::asMutable)
             .orElseGet(() -> ItemStack.of(ItemTypes.TRIPWIRE_HOOK, 1));
         if (base.get(Keys.CUSTOM_NAME).isEmpty()) {
             base.offer(Keys.CUSTOM_NAME, name(quantity.filter(q -> q > base.maxStackQuantity())));
@@ -88,7 +87,7 @@ public final class StandardKey extends Key {
         try {
             return Optional.of(Storage.queryKeyQuantity(user, this));
         } catch (SQLException e) {
-            CrateCrate.container().logger().error("Error getting key quantity.", e);
+            CrateCrate.get().logger().error("Error getting key quantity.", e);
             return Optional.empty();
         }
     }
@@ -113,7 +112,7 @@ public final class StandardKey extends Key {
             Storage.updateKeyQuantity(user, this, delta);
             return true;
         } catch (SQLException e) {
-            CrateCrate.container().logger().error("Error getting key quantity.", e);
+            CrateCrate.get().logger().error("Error getting key quantity.", e);
             return false;
         }
     }
@@ -121,7 +120,7 @@ public final class StandardKey extends Key {
     private static final class StandardKeyType extends Type<StandardKey, Integer> {
 
         private StandardKeyType() {
-            super("Standard", CrateCrate.container());
+            super("Standard", CrateCrate.get().getContainer());
         }
 
         @Override
@@ -143,10 +142,10 @@ public final class StandardKey extends Key {
         public StandardKey deserializeComponent(ConfigurationNode node) throws SerializationException {
             var name = Optional.ofNullable(node.node("name").get(String.class));
             var lore = node.node("lore").isList()
-                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(ImmutableList::copyOf)
-                : Optional.<ImmutableList<String>>empty();
+                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(List::copyOf)
+                : Optional.<List<String>>empty();
             var icon = node.hasChild("icon")
-                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).createSnapshot())
+                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).asImmutable())
                 : Optional.<ItemStackSnapshot>empty();
             return new StandardKey(String.valueOf(node.key()), name, lore, icon);
         }

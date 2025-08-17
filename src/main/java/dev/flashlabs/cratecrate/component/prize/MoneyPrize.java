@@ -1,6 +1,5 @@
 package dev.flashlabs.cratecrate.component.prize;
 
-import com.google.common.collect.ImmutableList;
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.Type;
 import dev.flashlabs.cratecrate.internal.Config;
@@ -32,14 +31,14 @@ public final class MoneyPrize extends Prize<BigDecimal> {
     public static final Type<MoneyPrize, BigDecimal> TYPE = new MoneyPrizeType();
 
     private final Optional<String> name;
-    private final Optional<ImmutableList<String>> lore;
+    private final Optional<List<String>> lore;
     private final Optional<ItemStackSnapshot> icon;
     private final Optional<Currency> currency;
 
     private MoneyPrize(
         String id,
         Optional<String> name,
-        Optional<ImmutableList<String>> lore,
+        Optional<List<String>> lore,
         Optional<ItemStackSnapshot> icon,
         Optional<Currency> currency
     ) {
@@ -74,7 +73,7 @@ public final class MoneyPrize extends Prize<BigDecimal> {
      */
     @Override
     public List<Component> lore(Optional<BigDecimal> amount) {
-        return lore.orElseGet(ImmutableList::of).stream().map(s -> {
+        return lore.orElseGet(List::of).stream().map(s -> {
             s = s.replaceAll("\\$\\{amount}", amount.map(String::valueOf).orElse("${amount}"));
             return LegacyComponentSerializer.legacyAmpersand().deserialize(s).asComponent();
         }).toList();
@@ -87,7 +86,7 @@ public final class MoneyPrize extends Prize<BigDecimal> {
      */
     @Override
     public ItemStack icon(Optional<BigDecimal> value) {
-        var base = icon.map(ItemStackSnapshot::createStack)
+        var base = icon.map(ItemStackSnapshot::asMutable)
             .orElseGet(() -> ItemStack.of(ItemTypes.SUNFLOWER, 1));
         if (base.get(Keys.CUSTOM_NAME).isEmpty()) {
             base.offer(Keys.CUSTOM_NAME, name(value));
@@ -113,7 +112,7 @@ public final class MoneyPrize extends Prize<BigDecimal> {
     private static final class MoneyPrizeType extends Type<MoneyPrize, BigDecimal> {
 
         private MoneyPrizeType() {
-            super("Money", CrateCrate.container());
+            super("Money", CrateCrate.get().getContainer());
         }
 
         /**
@@ -143,10 +142,10 @@ public final class MoneyPrize extends Prize<BigDecimal> {
         public MoneyPrize deserializeComponent(ConfigurationNode node) throws SerializationException {
             var name = Optional.ofNullable(node.node("name").get(String.class));
             var lore = node.node("lore").isList()
-                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(ImmutableList::copyOf)
-                : Optional.<ImmutableList<String>>empty();
+                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(List::copyOf)
+                : Optional.<List<String>>empty();
             var icon = node.hasChild("icon")
-                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).createSnapshot())
+                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).asImmutable())
                 : Optional.<ItemStackSnapshot>empty();
             var currency = node.hasChild("money", "currency")
                 ? Optional.of(Serializers.CURRENCY.deserialize(node.node("money", "currency")))

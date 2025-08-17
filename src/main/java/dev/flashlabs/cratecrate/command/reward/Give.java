@@ -1,8 +1,11 @@
 package dev.flashlabs.cratecrate.command.reward;
 
+import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.command.CommandUtils;
 import dev.flashlabs.cratecrate.component.Reward;
 import dev.flashlabs.cratecrate.internal.Config;
+import dev.flashlabs.cratecrate.internal.Utils;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.Sponge;
@@ -11,6 +14,7 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.command.parameter.Parameter;
+import org.spongepowered.api.util.locale.LocaleSource;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -31,18 +35,19 @@ public final class Give {
         .build();
 
     private static CommandResult execute(CommandContext context) throws CommandException {
-        var uuid = context.requireOne(Parameter.key("user", UUID.class));
+        var user = Utils.user(context,"user");
         var reward = context.requireOne(Parameter.key("reward", Reward.class));
-        try {
-            var user = Sponge.server().userManager().load(uuid).get()
-                .orElseThrow(() -> new CommandException(Component.text("Invalid user.")));
-            if (reward.give(user)) {
-                context.sendMessage(Identity.nil(), Component.text("Successfully gave reward."));
-            } else {
-                throw new CommandException(Component.text("Failed to give reward."));
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            throw new CommandException(Component.text("Unable to load user."));
+
+        if (reward.give(user)) {
+            CrateCrate.get().sendMessage((Audience & LocaleSource) context.cause().audience(), "command.prize.give.success",
+                    "user", user.name(),
+                    "reward", reward.id()
+            );
+        } else {
+            throw new CommandException(CrateCrate.get().getMessage("command.prize.give.failure", ((LocaleSource) context.cause().audience()).locale(),
+                    "user", user.name(),
+                    "reward", reward.id()
+            ));
         }
         return CommandResult.success();
     }

@@ -6,6 +6,7 @@ import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.util.locale.LocaleSource;
 import org.spongepowered.plugin.PluginContainer;
 
@@ -41,7 +42,7 @@ public abstract class PluginInstance {
         directory = Sponge.configManager().pluginConfig(container).directory();
         try {
             Path path = Files.createDirectories(directory.resolve("messages"));
-            var stream = container.openResource(URI.create("messages/messages.conf"));
+            var stream = container.openResource("messages/messages.conf");
 
             if(stream.isPresent()) {
                 Files.copy(stream.get(), path);
@@ -74,5 +75,4 @@ public abstract class PluginInstance {
     public final <T extends Audience & LocaleSource> void sendMessage(T source, String key, Object... args) {
         messages.send(source, Identity.nil(), key, args);
     }
-
 }

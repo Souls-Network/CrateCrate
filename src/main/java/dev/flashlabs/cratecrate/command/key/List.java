@@ -5,6 +5,7 @@ import dev.flashlabs.cratecrate.command.CommandUtils;
 import dev.flashlabs.cratecrate.component.key.Key;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Inventory;
+import dev.flashlabs.cratecrate.internal.Utils;
 import dev.flashlabs.flashlibs.inventory.Element;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
@@ -37,15 +38,7 @@ public class List {
             .build();
 
     private static CommandResult execute(CommandContext context) throws CommandException {
-        var uuid = context.requireOne(Parameter.key("user", UUID.class));
-
-        User user;
-
-        try {
-            user = Sponge.server().userManager().load(uuid).get().orElseThrow(() -> new CommandException(Component.text("Invalid user.")));
-        } catch (InterruptedException | ExecutionException e) {
-            throw new CommandException(Component.text("Unable to load user."));
-        }
+        var user = Utils.user(context, "user");
 
         var audience = context.cause().audience();
 
@@ -60,7 +53,8 @@ public class List {
             ).open(player);
         } else {
             //TODO
-            throw new CommandException(CrateCrate.get().getMessage("command.crate.list.player-only", ((LocaleSource) audience).locale()));
+            throw new CommandException(CrateCrate.get().getMessage("command.key.list.other.no-permission", ((LocaleSource) context.cause().audience()).locale(),
+                "user", user.name()));
         }
 
 

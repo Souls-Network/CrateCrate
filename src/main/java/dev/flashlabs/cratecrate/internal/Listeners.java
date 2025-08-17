@@ -26,7 +26,8 @@ public final class Listeners {
     public void onInteractBlockPrimary(InteractBlockEvent.Primary.Start event, @Root ServerPlayer player) {
         event.block().location().flatMap(l -> preInteract(event, player, l)).ifPresent(t -> {
             if (!player.hasPermission("cratecrate.crates." + t.first().id() + ".preview")) {
-                CrateCrate.get().sendMessage(player, "interact.crates.preview.no-permission");
+                CrateCrate.get().sendMessage(player, "interact.crates.preview.no-permission",
+                        "create", t.first().name(Optional.empty()));
             } else {
                 Utils.preview(t.first(), Inventory.CLOSE).open(player);
             }
@@ -48,7 +49,8 @@ public final class Listeners {
             if (!o.isPresent()) {
                 CrateCrate.get().sendMessage(player, "interact.crates.unavailable");
             } else if (!player.hasPermission("cratecrate.crates." + o.get().id() + ".base")) {
-                CrateCrate.get().sendMessage(player, "interact.crates.no-permission");
+                CrateCrate.get().sendMessage(player, "interact.crates.no-permission",
+                        "crate", o.get().name(Optional.empty()));
             } else {
                 return o
                         .filter(c -> event.context().get(EventContextKeys.USED_HAND).map(a -> a.equals(HandTypes.MAIN_HAND.get())).orElse(false))

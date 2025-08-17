@@ -1,10 +1,12 @@
 package dev.flashlabs.cratecrate.command.location;
 
+import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.command.CommandUtils;
 import dev.flashlabs.cratecrate.component.Crate;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Storage;
 import io.leangen.geantyref.TypeToken;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.command.Command;
@@ -12,6 +14,7 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.command.parameter.Parameter;
+import org.spongepowered.api.util.locale.LocaleSource;
 import org.spongepowered.api.world.server.ServerLocation;
 
 import java.sql.SQLException;
@@ -36,12 +39,25 @@ public final class Set {
         var location = context.requireOne(Parameter.key("location", ServerLocation.class));
         var crate = context.requireOne(Parameter.key("crate", TypeToken.get(Crate.class)));
         location = location.withBlockPosition(location.blockPosition());
+        if (Storage.LOCATIONS.containsKey(location)) {
+            Optional<Crate> registered = Storage.LOCATIONS.get(location);
+            throw new CommandException(CrateCrate.get().getMessage("command.location.set.invalid-location", ((LocaleSource) context.cause().audience()).locale(),
+                    "location", location.worldKey().asString() + " " + location.position(),
+                    "crate", registered.map(a -> a.id()).orElse("unavailable")
+            ));
+        }
         try {
             Storage.setLocation(location, crate);
-            Storage.LOCATIONS.put(location, Optional.of(crate));
-            context.sendMessage(Identity.nil(), Component.text("Successfully set location."));
+            CrateCrate.get().sendMessage((Audience & LocaleSource) context.cause().audience(), "command.location.set.success",
+                    "location", location.worldKey().asString() + " " + location.position(),
+                    "crate", crate.id()
+            );
         } catch (SQLException e) {
-            throw new CommandException(Component.text("Error setting location: " + e.getMessage()));
+            e.printStackTrace();
+            throw new CommandException(CrateCrate.get().getMessage("command.location.set.failure", ((LocaleSource) context.cause().audience()).locale(),
+                    "location", location.worldKey().asString() + " " + location.position(),
+                    "crate", crate.id()
+            ));
         }
         return CommandResult.success();
     }

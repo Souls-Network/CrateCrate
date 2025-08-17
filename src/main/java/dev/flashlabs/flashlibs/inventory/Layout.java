@@ -1,9 +1,8 @@
 package dev.flashlabs.flashlibs.inventory;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import org.spongepowered.math.vector.Vector2i;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -15,18 +14,18 @@ public final class Layout {
     public static final Layout EMPTY = Layout.builder(0, 0).build();
 
     private final Vector2i dimension;
-    private final ImmutableMap<Integer, Element> elements;
+    private final Map<Integer, Element> elements;
 
     private Layout(Builder builder) {
         dimension = new Vector2i(builder.columns, builder.rows);
-        elements = ImmutableMap.copyOf(builder.elements);
+        elements = Map.copyOf(builder.elements);
     }
 
     public Vector2i getDimension() {
         return dimension;
     }
 
-    public ImmutableMap<Integer, Element> getElements() {
+    public Map<Integer, Element> getElements() {
         return elements;
     }
 
@@ -42,7 +41,7 @@ public final class Layout {
      */
     public static final class Builder {
 
-        private final Map<Integer, Element> elements = Maps.newHashMap();
+        private final Map<Integer, Element> elements = new HashMap<>();
         private final int rows;
         private final int columns;
 

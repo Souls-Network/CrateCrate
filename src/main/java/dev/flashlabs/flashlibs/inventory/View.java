@@ -1,9 +1,7 @@
 package dev.flashlabs.flashlibs.inventory;
 
-import com.google.common.collect.Maps;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Cause;
 import org.spongepowered.api.item.inventory.*;
@@ -15,6 +13,7 @@ import org.spongepowered.api.item.inventory.type.ViewableInventory;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.plugin.PluginContainer;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
 public final class View {
 
     private final ViewableInventory inventory;
-    private final Map<Integer, Element> elements = Maps.newHashMap();
+    private final Map<Integer, Element> elements = new HashMap<>();
     private final PluginContainer container;
     private final InventoryMenu menu;
 
@@ -86,7 +85,7 @@ public final class View {
         } else {
             elements.put(index, element);
         }
-        set(element.getItem().createStack(), index);
+        set(element.getItem().asMutable(), index);
     }
 
     /**

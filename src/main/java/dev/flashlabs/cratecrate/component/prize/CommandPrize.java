@@ -1,6 +1,5 @@
 package dev.flashlabs.cratecrate.component.prize;
 
-import com.google.common.collect.ImmutableList;
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.Type;
 import dev.flashlabs.cratecrate.internal.Config;
@@ -30,7 +29,7 @@ public final class CommandPrize extends Prize<String> {
     }
 
     private final Optional<String> name;
-    private final Optional<ImmutableList<String>> lore;
+    private final Optional<List<String>> lore;
     private final Optional<ItemStackSnapshot> icon;
     private final String command;
     private final Optional<Source> source;
@@ -39,7 +38,7 @@ public final class CommandPrize extends Prize<String> {
     private CommandPrize(
         String id,
         Optional<String> name,
-        Optional<ImmutableList<String>> lore,
+        Optional<List<String>> lore,
         Optional<ItemStackSnapshot> icon,
         String command,
         Optional<Source> source,
@@ -71,7 +70,7 @@ public final class CommandPrize extends Prize<String> {
      */
     @Override
     public List<Component> lore(Optional<String> value) {
-        return lore.orElseGet(ImmutableList::of).stream().map(s -> {
+        return lore.orElseGet(List::of).stream().map(s -> {
             s = s.replaceAll("\\$\\{value}", value.orElse("${value}"));
             return LegacyComponentSerializer.legacyAmpersand().deserialize(s).asComponent();
         }).toList();
@@ -84,7 +83,7 @@ public final class CommandPrize extends Prize<String> {
      */
     @Override
     public ItemStack icon(Optional<String> value) {
-        var base = icon.map(ItemStackSnapshot::createStack)
+        var base = icon.map(ItemStackSnapshot::asMutable)
             .orElseGet(() -> ItemStack.of(ItemTypes.FILLED_MAP, 1));
         if (base.get(Keys.CUSTOM_NAME).isEmpty()) {
             base.offer(Keys.CUSTOM_NAME, name(value));
@@ -111,7 +110,7 @@ public final class CommandPrize extends Prize<String> {
             Sponge.server().commandManager().process(command);
             return true;
         } catch (CommandException e) {
-            CrateCrate.container().logger().error("Error processing command: ", e);
+            CrateCrate.get().logger().error("Error processing command: ", e);
             return false;
         }
     }
@@ -119,7 +118,7 @@ public final class CommandPrize extends Prize<String> {
     private static final class CommandPrizeType extends Type<CommandPrize, String> {
 
         private CommandPrizeType() {
-            super("Command", CrateCrate.container());
+            super("Command", CrateCrate.get().getContainer());
         }
 
         /**
@@ -151,10 +150,10 @@ public final class CommandPrize extends Prize<String> {
         public CommandPrize deserializeComponent(ConfigurationNode node) throws SerializationException {
             var name = Optional.ofNullable(node.node("name").get(String.class));
             var lore = node.node("lore").isList()
-                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(ImmutableList::copyOf)
-                : Optional.<ImmutableList<String>>empty();
+                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(List::copyOf)
+                : Optional.<List<String>>empty();
             var icon = node.hasChild("icon")
-                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).createSnapshot())
+                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).asImmutable())
                 : Optional.<ItemStackSnapshot>empty();
             var command = Optional.ofNullable(node.node("command").getString())
                 .or(() -> Optional.ofNullable(node.node("command", "command").getString()))

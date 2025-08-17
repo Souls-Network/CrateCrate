@@ -3,7 +3,7 @@ import org.spongepowered.plugin.metadata.model.PluginDependency
 
 plugins {
     `java-library`
-    id("org.spongepowered.gradle.plugin") version "2.0.1"
+    id("org.spongepowered.gradle.plugin") version "2.2.0"
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
@@ -12,6 +12,9 @@ version = "0.0.1"
 
 repositories {
     mavenCentral()
+    maven("https://repo.spongepowered.org/maven/") {
+        name = "spongepowered-repo"
+    }
 }
 
 dependencies {
@@ -19,7 +22,7 @@ dependencies {
 }
 
 sponge {
-    apiVersion("8.0.0-SNAPSHOT")
+    apiVersion("12.0.0")
     license("MIT")
     loader {
         name(PluginLoaders.JAVA_PLAIN)
@@ -40,13 +43,9 @@ sponge {
     }
 }
 
-val javaTarget = 16 // Sponge targets a minimum of Java 8
+val javaTarget = 21 // Sponge targets a minimum of Java 8
 java {
-    sourceCompatibility = JavaVersion.toVersion(javaTarget)
-    targetCompatibility = JavaVersion.toVersion(javaTarget)
-    if (JavaVersion.current() < JavaVersion.toVersion(javaTarget)) {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(javaTarget))
-    }
+    toolchain.languageVersion.set(JavaLanguageVersion.of(javaTarget))
 }
 
 tasks.withType(JavaCompile::class).configureEach {

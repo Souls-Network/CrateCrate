@@ -23,7 +23,7 @@ public final class Element {
     private final Consumer<Action.Click> onClick;
 
     private Element(ItemStack item, Consumer<Action.Click> onClick) {
-        this.item = item.createSnapshot();
+        this.item = item.asImmutable();
         this.onClick = onClick;
     }
 

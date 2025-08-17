@@ -1,8 +1,11 @@
 package dev.flashlabs.cratecrate.command.key;
 
+import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.command.CommandUtils;
 import dev.flashlabs.cratecrate.component.key.Key;
 import dev.flashlabs.cratecrate.internal.Config;
+import dev.flashlabs.cratecrate.internal.Utils;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.Sponge;
@@ -11,7 +14,9 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.command.parameter.Parameter;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
+import org.spongepowered.api.util.locale.LocaleSource;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -33,20 +38,21 @@ public final class Balance {
         .build();
 
     private static CommandResult execute(CommandContext context) throws CommandException {
-        var uuid = context.requireOne(Parameter.key("user", UUID.class));
         var key = context.requireOne(Parameter.key("key", Key.class));
-        if (context.cause().root() instanceof ServerPlayer
-            && !((ServerPlayer) context.cause().root()).uniqueId().equals(uuid)
-            && !context.hasPermission("cratecrate.command.key.balance.other")) {
-            throw new CommandException(Component.text("Cannot view other user's keys."));
+        var user = Utils.user(context, "user");
+
+        if (context.cause().root() instanceof ServerPlayer player
+                && !player.user().equals(user)
+                && !context.hasPermission("cratecrate.command.key.balance.other")) {
+            throw new CommandException(CrateCrate.get().getMessage("command.key.balance.other.no-permission", player.locale(),
+                    "user", user.name()
+            ));
         }
-        try {
-            var user = Sponge.server().userManager().load(uuid).get()
-                .orElseThrow(() -> new CommandException(Component.text("Invalid user.")));
-            context.sendMessage(Identity.nil(), key.name(Optional.of(key.quantity(user).orElse(0))));
-        } catch (InterruptedException | ExecutionException e) {
-            throw new CommandException(Component.text("Unable to load user."));
-        }
+
+        CrateCrate.get().sendMessage((LocaleSource & Audience) context.cause().audience(), "command.key.balance.success",
+                "key", key.name(Optional.of(key.quantity(user).orElse(0)))
+        );
+
         return CommandResult.success();
     }
 

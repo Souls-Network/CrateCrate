@@ -3,6 +3,7 @@ package dev.flashlabs.cratecrate.internal;
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.Crate;
 import dev.flashlabs.cratecrate.component.key.Key;
+import org.h2.jdbcx.JdbcDataSource;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.User;
@@ -31,7 +32,7 @@ public final class Storage {
         try {
             Class.forName("dev.flashlabs.cratecrate.shadow.org.h2.Driver");
             Files.createDirectories(DIRECTORY);
-            source = Sponge.sqlManager().dataSource("jdbc:h2:" + DIRECTORY.resolve("storage.db") + ";MODE=MySQL");
+            source = dataSource("jdbc:h2:" + DIRECTORY.resolve("storage.db") + ";MODE=MySQL");
             try (var connection = source.getConnection()) {
                 connection.prepareStatement("""
                     CREATE TABLE IF NOT EXISTS StandardKeys (
@@ -71,6 +72,12 @@ public final class Storage {
         } catch (ClassNotFoundException | IOException | SQLException e) {
             CrateCrate.get().logger().error("Error loading storage: ", e);
         }
+    }
+
+    private static DataSource dataSource(String url) {
+        var database = new JdbcDataSource();
+        database.setURL(url);
+        return database;
     }
 
     public static int queryKeyQuantity(User user, Key key) throws SQLException {

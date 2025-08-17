@@ -1,6 +1,5 @@
 package dev.flashlabs.cratecrate.component.prize;
 
-import com.google.common.collect.ImmutableList;
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.Type;
 import dev.flashlabs.cratecrate.internal.Config;
@@ -26,14 +25,14 @@ public final class ItemPrize extends Prize<Integer> {
     public static final Type<ItemPrize, Integer> TYPE = new ItemPrizeType();
 
     private final Optional<String> name;
-    private final Optional<ImmutableList<String>> lore;
+    private final Optional<List<String>> lore;
     private final Optional<ItemStackSnapshot> icon;
     private final ItemStackSnapshot item;
 
     private ItemPrize(
         String id,
         Optional<String> name,
-        Optional<ImmutableList<String>> lore,
+        Optional<List<String>> lore,
         Optional<ItemStackSnapshot> icon,
         ItemStackSnapshot item
     ) {
@@ -60,7 +59,7 @@ public final class ItemPrize extends Prize<Integer> {
      */
     @Override
     public List<net.kyori.adventure.text.Component> lore(Optional<Integer> unused) {
-        return lore.orElseGet(ImmutableList::of).stream()
+        return lore.orElseGet(List::of).stream()
             .map(s -> LegacyComponentSerializer.legacyAmpersand().deserialize(s).asComponent())
             .toList();
     }
@@ -74,8 +73,7 @@ public final class ItemPrize extends Prize<Integer> {
      */
     @Override
     public ItemStack icon(Optional<Integer> quantity) {
-        var base = icon.map(ItemStackSnapshot::createStack)
-            .orElseGet(item::createStack);
+        var base = icon.orElse(item).asMutable();
         if (base.get(Keys.CUSTOM_NAME).isEmpty()) {
             base.offer(Keys.CUSTOM_NAME, name(quantity.filter(q -> q > base.maxStackQuantity())));
         }
@@ -95,7 +93,7 @@ public final class ItemPrize extends Prize<Integer> {
         if (result.type() == InventoryTransactionResult.Type.SUCCESS) {
             return true;
         } else {
-            CrateCrate.container().logger().error("Failed to give item: " + result.type().name());
+            CrateCrate.get().logger().error("Failed to give item: " + result.type().name());
             return false;
         }
     }
@@ -103,7 +101,7 @@ public final class ItemPrize extends Prize<Integer> {
     private static final class ItemPrizeType extends Type<ItemPrize, Integer> {
 
         private ItemPrizeType() {
-            super("Item", CrateCrate.container());
+            super("Item", CrateCrate.get().getContainer());
         }
 
         /**
@@ -139,12 +137,12 @@ public final class ItemPrize extends Prize<Integer> {
         public ItemPrize deserializeComponent(ConfigurationNode node) throws SerializationException {
             var name = Optional.ofNullable(node.node("name").get(String.class));
             var lore = node.node("lore").isList()
-                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(ImmutableList::copyOf)
-                : Optional.<ImmutableList<String>>empty();
+                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(List::copyOf)
+                : Optional.<List<String>>empty();
             var icon = node.hasChild("icon")
-                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).createSnapshot())
+                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).asImmutable())
                 : Optional.<ItemStackSnapshot>empty();
-            var item = Serializers.ITEM_STACK.deserialize(node.node("item")).createSnapshot();
+            var item = Serializers.ITEM_STACK.deserialize(node.node("item")).asImmutable();
             return new ItemPrize(String.valueOf(node.key()), name, lore, icon, item);
         }
 
@@ -179,7 +177,7 @@ public final class ItemPrize extends Prize<Integer> {
                     prize = (ItemPrize) Config.PRIZES.get(identifier);
                 } else {
                     var item = ItemStack.of(RegistryTypes.ITEM_TYPE.get().findValue(ResourceKey.resolve(identifier))
-                        .orElseThrow(AssertionError::new)).createSnapshot();
+                        .orElseThrow(AssertionError::new)).asImmutable();
                     prize = new ItemPrize(identifier, Optional.empty(), Optional.empty(), Optional.empty(), item);
                     Config.PRIZES.put(prize.id, prize);
                 }

@@ -31,7 +31,7 @@ public final class Config {
     public static final Map<String, Key> KEYS = new HashMap<>();
 
     private static final Path DIRECTORY = Sponge.configManager()
-        .pluginConfig(CrateCrate.container())
+        .pluginConfig(CrateCrate.get().getContainer())
         .directory();
 
     public static void load() {
@@ -58,16 +58,16 @@ public final class Config {
                 Crate crate = resolveCrateType(node).deserializeComponent(node);
                 CRATES.put(crate.id(), crate);
             }
-            CrateCrate.container().logger().info("Successfully loaded the config.");
+            CrateCrate.get().logger().info("Successfully loaded the config.");
         } catch (IOException e) {
-            CrateCrate.container().logger().error("Error loading the config: ", e);
+            CrateCrate.get().logger().error("Error loading the config: ", e);
         }
     }
 
     private static ConfigurationNode load(String name) throws IOException {
         Path path = DIRECTORY.resolve(name);
         if (Files.notExists(path)) {
-            Files.copy(CrateCrate.container().openResource(URI.create("assets/cratecrate/"  + name)).get(), path);
+            Files.copy(CrateCrate.get().getContainer().openResource("assets/cratecrate/"  + name).get(), path);
         }
         return HoconConfigurationLoader.builder().path(path).build().load();
     }

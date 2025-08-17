@@ -1,7 +1,5 @@
 package dev.flashlabs.cratecrate.internal;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.Crate;
 import dev.flashlabs.cratecrate.component.Reward;
@@ -9,17 +7,22 @@ import dev.flashlabs.cratecrate.component.key.Key;
 import dev.flashlabs.flashlibs.inventory.Element;
 import dev.flashlabs.flashlibs.inventory.Page;
 import dev.flashlabs.flashlibs.inventory.View;
+import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.text.LinearComponents;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.exception.CommandException;
+import org.spongepowered.api.command.parameter.CommandContext;
+import org.spongepowered.api.command.parameter.Parameter;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.world.server.ServerLocation;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public final class Utils {
@@ -49,7 +52,7 @@ public final class Utils {
     }
 
     public static View confirm(Tuple<Crate, ServerLocation> crate) {
-        return Inventory.menu(crate.first().name(Optional.empty()), ImmutableMap.of(
+        return Inventory.menu(crate.first().name(Optional.empty()), Map.of(
                 10, Element.of(Inventory.item(ItemTypes.SLIME_BALL.get(), Component.text("Confirm")), a -> a.callback(v -> {
                     a.getPlayer().closeInventory();
                     if (checkKeys(a.getPlayer(), crate.first()) && takeKeys(a.getPlayer(), crate.first())) {
@@ -84,16 +87,19 @@ public final class Utils {
     }
 
     public static boolean takeKeys(ServerPlayer player, Crate crate) {
-        List<Tuple<? extends Key, Integer>> taken = Lists.newArrayList();
+        List<Tuple<? extends Key, Integer>> taken = new ArrayList<>();
         for (Tuple<? extends Key, Integer> key : crate.keys()) {
             if (!key.first().take(player.user(), key.second())) {
                 if (taken.isEmpty()) {
-                    CrateCrate.get().sendMessage(player, "interact.keys.take.failure");
+                    CrateCrate.get().sendMessage(player, "interact.keys.take.failure",
+                            "key", key.first().name(Optional.of(key.second()))
+                    );
                 } else {
                     CrateCrate.get().getContainer().logger().error("Incomplete transaction for player " + player.name() + ": " + taken.stream()
                             .map(k -> k.first().id() + " (x" + k.second() + ")")
                             .collect(Collectors.joining(", ")));
                     CrateCrate.get().sendMessage(player, "interact.keys.take.incomplete",
+                            "key", key.first().name(Optional.of(key.second())),
                             "keys", Component.join(
                                 JoinConfiguration.separator(Component.text(", ")),
                                 taken.stream()
@@ -105,5 +111,14 @@ public final class Utils {
             taken.add(key);
         }
         return true;
+    }
+
+    public static User user(CommandContext context, String name) throws CommandException {
+        try {
+            return Sponge.server().userManager().load(context.requireOne(Parameter.key("user", UUID.class))).get()
+                    .orElseThrow(() -> new CommandException(Component.text("Invalid user.")));
+        } catch (InterruptedException | ExecutionException e) {
+            throw new CommandException(Component.text("Unable to load user."));
+        }
     }
 }

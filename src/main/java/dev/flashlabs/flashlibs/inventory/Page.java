@@ -1,8 +1,5 @@
 package dev.flashlabs.flashlibs.inventory;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import net.kyori.adventure.text.Component;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.entity.living.player.Player;
@@ -15,6 +12,8 @@ import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.item.inventory.menu.ClickType;
 import org.spongepowered.plugin.PluginContainer;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -35,18 +34,18 @@ public final class Page {
 
     private final ContainerType archetype;
     private final Function<Context, Component> title;
-    private final ImmutableMap<Element, Function<Context, Element>> icons;
+    private final Map<Element, Function<Context, Element>> icons;
     private final Layout layout;
-    private final List<View> views = Lists.newArrayList();
+    private final List<View> views = new ArrayList<>();
     private final org.spongepowered.plugin.PluginContainer container;
 
     private Page(Builder builder, PluginContainer container) {
         archetype = builder.archetype;
         title = builder.title;
-        icons = ImmutableMap.copyOf(builder.icons);
+        icons = Map.copyOf(builder.icons);
         layout = builder.layout;
         this.container = container;
-        define(Lists.newArrayList());
+        define(new ArrayList<>());
     }
 
     /**
@@ -75,7 +74,7 @@ public final class Page {
         int pages = Math.max((contents.size() - 1) / size + 1, 1);
         for (int i = 1; i <= pages; i++) {
             Context context = new Context(i, pages);
-            Map<Integer, Element> elements = Maps.newHashMap(layout.getElements());
+            Map<Integer, Element> elements = new HashMap<>(layout.getElements());
             for (int index = (i - 1) * size, j = 0; j < layout.getElements().size() + size; j++) {
                 Element element = elements.get(j);
                 if (element == null && index < contents.size()) {
@@ -138,25 +137,24 @@ public final class Page {
     public static final class Builder {
 
          private static final Function<Context, net.kyori.adventure.text.Component> DEFAULT_TITLE = c -> Component.text("Page " + c.getCurrent());
-        private static final ImmutableMap<Element, Function<Context, Element>> DEFAULT_ICONS = ImmutableMap.<Element, Function<Context, Element>>builder()
-                .put(Page.FIRST, c -> icon(c, "First", 1))
-                .put(Page.PREVIOUS, c -> icon(c, "Previous", Math.max(c.getCurrent() - 1, 1)))
-                .put(Page.CURRENT, c -> icon(c, "Current", c.getCurrent()))
-                .put(Page.NEXT, c -> icon(c, "Next", Math.min(c.getCurrent() + 1, c.getTotal())))
-                .put(Page.LAST, c -> icon(c, "Last", c.getTotal()))
-                .build();
+        private static final Map<Element, Function<Context, Element>> DEFAULT_ICONS = Map.<Element, Function<Context, Element>>of(
+                Page.FIRST, c -> icon(c, "First", 1),
+                Page.PREVIOUS, c -> icon(c, "Previous", Math.max(c.getCurrent() - 1, 1)),
+                Page.CURRENT, c -> icon(c, "Current", c.getCurrent()),
+                Page.NEXT, c -> icon(c, "Next", Math.min(c.getCurrent() + 1, c.getTotal())),
+                Page.LAST, c -> icon(c, "Last", c.getTotal()));
 
         private static Element icon(Context context, String name, int target) {
             return Element.of(ItemStack.builder()
                     .itemType(context.getCurrent() == target ? ItemTypes.MAP : ItemTypes.PAPER)
                     .add(Keys.DISPLAY_NAME, net.kyori.adventure.text.Component.text(name + " (" + target + ")"))
                     .quantity(context.getTotal() > 64 ? target : 1)
-                    .build(), (clickType, player, container, view, slot, slotIndex) -> view.execute(v -> context.open(player, target)));
+                    .build(), a -> a.callback(v -> context.open(a.getPlayer(), target)));
         }
 
         private final ContainerType archetype;
         private Function<Context, net.kyori.adventure.text.Component> title = DEFAULT_TITLE;
-        private final Map<Element, Function<Context, Element>> icons = Maps.newHashMap(DEFAULT_ICONS);
+        private final Map<Element, Function<Context, Element>> icons = new HashMap<>(DEFAULT_ICONS);
         private Layout layout = Layout.EMPTY;
 
         private Builder(ContainerType archetype) {
