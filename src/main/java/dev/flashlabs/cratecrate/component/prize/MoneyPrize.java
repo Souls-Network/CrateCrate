@@ -5,6 +5,8 @@ import dev.flashlabs.cratecrate.component.Type;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Serializers;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
@@ -51,19 +53,19 @@ public final class MoneyPrize extends Prize<BigDecimal> {
 
     /**
      * Returns the name of this prize, defaulting to the format method of the
-     * currency. If a reference value is given and the name is defined, it
-     * replaces {@code ${amount}}. Else, if a reference value is not given and
-     * the name is not defined then {@code BigDecimal.ZERO} is used as the
-     * default amount.
+     * currency. If a reference value is given, it replaces {@code ${amount}}.
      */
     @Override
     public Component name(Optional<BigDecimal> amount) {
         return name.map(s -> {
             s = s.replaceAll("\\$\\{amount}", amount.map(String::valueOf).orElse("${amount}"));
-            return LegacyComponentSerializer.legacyAmpersand().deserialize(s).asComponent();
+            return LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + s).asComponent();
         }).orElseGet(() -> {
             var service = Sponge.server().serviceProvider().economyService().get();
-            return currency.orElse(service.defaultCurrency()).format(amount.orElse(BigDecimal.ZERO));
+            return currency
+                    .orElse(service.defaultCurrency())
+                    .format(amount.orElse(BigDecimal.ZERO)).color(NamedTextColor.WHITE);
+//                    .replace(Pattern.compile("0+(\\.0+)"), Text.of("${amount}"))
         });
     }
 
@@ -75,7 +77,7 @@ public final class MoneyPrize extends Prize<BigDecimal> {
     public List<Component> lore(Optional<BigDecimal> amount) {
         return lore.orElseGet(List::of).stream().map(s -> {
             s = s.replaceAll("\\$\\{amount}", amount.map(String::valueOf).orElse("${amount}"));
-            return LegacyComponentSerializer.legacyAmpersand().deserialize(s).asComponent();
+            return LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + s).asComponent();
         }).toList();
     }
 
@@ -91,7 +93,7 @@ public final class MoneyPrize extends Prize<BigDecimal> {
         if (base.get(Keys.CUSTOM_NAME).isEmpty()) {
             base.offer(Keys.CUSTOM_NAME, name(value));
         }
-        if (lore.isPresent() && base.get(Keys.LORE).isEmpty()) {
+        if (base.get(Keys.LORE).isEmpty()) {
             base.offer(Keys.LORE, lore(value));
         }
         return base;

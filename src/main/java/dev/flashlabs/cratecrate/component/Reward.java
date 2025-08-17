@@ -4,7 +4,9 @@ import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.prize.Prize;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Serializers;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.apache.commons.lang3.text.WordUtils;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.item.ItemTypes;
@@ -47,17 +49,17 @@ public final class Reward extends Component<BigDecimal> {
 
     /**
      * Returns the name of this reward, defaulting to either the name of the
-     * first prize (if only one prize exists) or this reward's id (if multiple
+     * first prize (if only one prize exists) or this reward's capitalized id (if multiple
      * prizes exist). The reference value is currently unused.
      */
     @Override
     public net.kyori.adventure.text.Component name(Optional<BigDecimal> unused) {
         if (name.isPresent()) {
-            return LegacyComponentSerializer.legacyAmpersand().deserialize(name.get());
+            return LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + name.get());
         } else if (prizes.size() == 1) {
             return prizes.get(0).first().name(Optional.of(prizes.get(0).second()));
         } else {
-            return net.kyori.adventure.text.Component.text(id);
+            return net.kyori.adventure.text.Component.text(WordUtils.capitalize(id.replace("-", " ")), NamedTextColor.WHITE);
         }
     }
 
@@ -72,7 +74,7 @@ public final class Reward extends Component<BigDecimal> {
         if (lore.isPresent()) {
             return lore.get().stream().map(s -> {
                 s = s.replaceAll("\\$\\{weight}", weight.map(String::valueOf).orElse("${weight}"));
-                return LegacyComponentSerializer.legacyAmpersand().deserialize(s).asComponent();
+                return LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + s).asComponent();
             }).toList();
         } else if (prizes.size() == 1) {
             return prizes.get(0).first().lore(Optional.of(prizes.get(0).second()));

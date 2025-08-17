@@ -6,6 +6,7 @@ import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Serializers;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.apache.commons.lang3.text.WordUtils;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.data.Keys;
@@ -56,23 +57,29 @@ public final class CommandPrize extends Prize<String> {
     /**
      * Returns the name of this prize, defaulting to the command prefixed with
      * {@code '/'}. If a reference value is given, it replaces {@code ${value}}.
+     * If a reference value is given, it replaces {@code ${value}}.
      */
     @Override
     public Component name(Optional<String> value) {
-        var base = name.orElseGet(() -> "/" + command);
+        var base = name.orElseGet(() -> id.startsWith("/") ? id : WordUtils.capitalize(id.replace("-", " ")));
         base = base.replaceAll("\\$\\{value}", value.orElse("${value}"));
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(base);
+        return LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + base);
     }
 
     /**
-     * Returns the lore of this prize, defaulting to an empty list. If a
+
+     * Returns the lore of this prize, defaulting to an empty list if this prize
+     * is an inline reference else the command (prefixed with {@code '/'}). If a
      * reference value is given, it replaces {@code ${value}}.
      */
     @Override
     public List<Component> lore(Optional<String> value) {
-        return lore.orElseGet(List::of).stream().map(s -> {
+        return lore
+                .orElse(id.startsWith("/") ? List.of() : List.of("/" + command)).stream()
+
+                .map(s -> {
             s = s.replaceAll("\\$\\{value}", value.orElse("${value}"));
-            return LegacyComponentSerializer.legacyAmpersand().deserialize(s).asComponent();
+            return LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + s).asComponent();
         }).toList();
     }
 
@@ -88,7 +95,7 @@ public final class CommandPrize extends Prize<String> {
         if (base.get(Keys.CUSTOM_NAME).isEmpty()) {
             base.offer(Keys.CUSTOM_NAME, name(value));
         }
-        if (lore.isPresent() && base.get(Keys.LORE).isEmpty()) {
+        if (base.get(Keys.LORE).isEmpty()) {
             base.offer(Keys.LORE, lore(value));
         }
         return base;

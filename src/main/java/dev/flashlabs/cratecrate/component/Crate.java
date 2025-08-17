@@ -4,7 +4,9 @@ import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.key.Key;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Serializers;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.apache.commons.lang3.text.WordUtils;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.item.ItemTypes;
@@ -48,13 +50,13 @@ public final class Crate extends Component<Void> {
     }
 
     /**
-     * Returns the name of this crate, defaulting to the id.
+     * Returns the name of this crate, defaulting to the capitalized id.
      */
     @Override
     public net.kyori.adventure.text.Component name(Optional<Void> ignored) {
         return name
-            .map(s -> LegacyComponentSerializer.legacyAmpersand().deserialize(s))
-            .orElseGet(() -> net.kyori.adventure.text.Component.text(id));
+            .map(s -> LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + s))
+            .orElseGet(() -> net.kyori.adventure.text.Component.text(WordUtils.capitalize(id), NamedTextColor.WHITE));
     }
 
     /**
@@ -63,7 +65,7 @@ public final class Crate extends Component<Void> {
     @Override
     public List<net.kyori.adventure.text.Component> lore(Optional<Void> ignored) {
         return lore.orElseGet(List::of).stream()
-            .map(s -> LegacyComponentSerializer.legacyAmpersand().deserialize(s).asComponent())
+            .map(s -> LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + s).asComponent())
             .toList();
     }
 
@@ -79,7 +81,7 @@ public final class Crate extends Component<Void> {
         if (base.get(Keys.CUSTOM_NAME).isEmpty()) {
             base.offer(Keys.CUSTOM_NAME, name(Optional.empty()));
         }
-        if (lore.isPresent() && base.get(Keys.LORE).isEmpty()) {
+        if (base.get(Keys.LORE).isEmpty()) {
             base.offer(Keys.LORE, lore(Optional.empty()));
         }
         return base;

@@ -44,12 +44,14 @@ public final class ItemPrize extends Prize<Integer> {
     }
 
     /**
-     * Returns the name of this key, defaulting to the id. If a reference value
-     * is given, it is appended to the name in the form {@code (x#)}.
+     * Returns the name of this key, defaulting to the translation of the item
+     * if no keys are set else the capitalized id without a namespace. If a
+     * reference value is given, it is appended to the name in the form
+     * {@code (x#)}.
      */
     @Override
     public net.kyori.adventure.text.Component name(Optional<Integer> quantity) {
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(name.orElse(id))
+        return LegacyComponentSerializer.legacyAmpersand().deserialize("8f" + name.orElse(id))
             .append(Component.text(quantity.map(q -> " (x" + q + ")").orElse("")));
     }
 
@@ -60,7 +62,7 @@ public final class ItemPrize extends Prize<Integer> {
     @Override
     public List<net.kyori.adventure.text.Component> lore(Optional<Integer> unused) {
         return lore.orElseGet(List::of).stream()
-            .map(s -> LegacyComponentSerializer.legacyAmpersand().deserialize(s).asComponent())
+            .map(s -> LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + s).asComponent())
             .toList();
     }
 
@@ -77,7 +79,7 @@ public final class ItemPrize extends Prize<Integer> {
         if (base.get(Keys.CUSTOM_NAME).isEmpty()) {
             base.offer(Keys.CUSTOM_NAME, name(quantity.filter(q -> q > base.maxStackQuantity())));
         }
-        if (lore.isPresent() && base.get(Keys.LORE).isEmpty()) {
+        if (base.get(Keys.LORE).isEmpty()) {
             base.offer(Keys.LORE, lore(Optional.empty()));
         }
         base.setQuantity(quantity.filter(q -> q <= base.maxStackQuantity()).orElse(1));

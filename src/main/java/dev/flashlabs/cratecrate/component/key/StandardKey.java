@@ -7,6 +7,7 @@ import dev.flashlabs.cratecrate.internal.Serializers;
 import dev.flashlabs.cratecrate.internal.Storage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.apache.commons.lang3.text.WordUtils;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.item.ItemTypes;
@@ -41,12 +42,12 @@ public final class StandardKey extends Key {
     }
 
     /**
-     * Returns the name of this key, defaulting to the id. If a reference value
+     * Returns the name of this key, defaulting to the capitizalized id. If a reference value
      * is given, it is appended to the name in the form {@code (x#)}.
      */
     @Override
     public net.kyori.adventure.text.Component name(Optional<Integer> quantity) {
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(name.orElse(id))
+        return LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + name.orElse(WordUtils.capitalize(id.replace("-", " "))))
             .append(Component.text(quantity.map(q -> " (x" + q + ")").orElse("")));
     }
 
@@ -57,7 +58,7 @@ public final class StandardKey extends Key {
     @Override
     public List<net.kyori.adventure.text.Component> lore(Optional<Integer> unused) {
         return lore.orElseGet(List::of).stream()
-            .map(s -> LegacyComponentSerializer.legacyAmpersand().deserialize(s).asComponent())
+            .map(s -> LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + s).asComponent())
             .toList();
     }
 
@@ -75,7 +76,7 @@ public final class StandardKey extends Key {
         if (base.get(Keys.CUSTOM_NAME).isEmpty()) {
             base.offer(Keys.CUSTOM_NAME, name(quantity.filter(q -> q > base.maxStackQuantity())));
         }
-        if (lore.isPresent() && base.get(Keys.LORE).isEmpty()) {
+        if (base.get(Keys.LORE).isEmpty()) {
             base.offer(Keys.LORE, lore(Optional.empty()));
         }
         base.setQuantity(quantity.filter(q -> q <= base.maxStackQuantity()).orElse(1));
