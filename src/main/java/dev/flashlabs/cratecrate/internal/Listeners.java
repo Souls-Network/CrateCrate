@@ -46,11 +46,13 @@ public final class Listeners {
     private <T extends InteractEvent & Cancellable> Optional<Tuple<Crate, ServerLocation>> preInteract(T event, ServerPlayer player, ServerLocation location) {
         return Optional.ofNullable(Storage.LOCATIONS.get(location)).flatMap(o -> {
             event.setCancelled(true);
-            if (!o.isPresent()) {
+            if (o.isEmpty()) {
                 CrateCrate.get().sendMessage(player, "interact.crates.unavailable");
             } else if (!player.hasPermission("cratecrate.crates." + o.get().id() + ".base")) {
                 CrateCrate.get().sendMessage(player, "interact.crates.no-permission",
-                        "crate", o.get().name(Optional.empty()));
+                        "crate", o.get().name(Optional.empty())
+                );
+                o.get().effects().get(Effect.Action.REJECT).forEach(e -> e.getFirst().give(player, location, e.getSecond()));
             } else {
                 return o
                         .filter(c -> event.context().get(EventContextKeys.USED_HAND).map(a -> a.equals(HandTypes.MAIN_HAND.get())).orElse(false))

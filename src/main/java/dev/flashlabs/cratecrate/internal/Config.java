@@ -5,6 +5,7 @@ import dev.flashlabs.cratecrate.component.Component;
 import dev.flashlabs.cratecrate.component.Crate;
 import dev.flashlabs.cratecrate.component.Reward;
 import dev.flashlabs.cratecrate.component.Type;
+import dev.flashlabs.cratecrate.component.effect.Effect;
 import dev.flashlabs.cratecrate.component.key.Key;
 import dev.flashlabs.cratecrate.component.prize.Prize;
 import org.spongepowered.api.Sponge;
@@ -29,6 +30,7 @@ public final class Config {
     public static final Map<String, Reward> REWARDS = new HashMap<>();
     public static final Map<String, Prize> PRIZES = new HashMap<>();
     public static final Map<String, Key> KEYS = new HashMap<>();
+    public static final Map<String, Effect> EFFECTS = new HashMap<>();
 
     private static final Path DIRECTORY = Sponge.configManager()
         .pluginConfig(CrateCrate.get().getContainer())
@@ -72,20 +74,24 @@ public final class Config {
         return HoconConfigurationLoader.builder().path(path).build().load();
     }
 
-    public static Type<? extends Crate, Void> resolveCrateType(ConfigurationNode node) throws SerializationException {
-        return (Type<? extends Crate, Void>) Config.<Crate>resolveType(node, Crate.class, Crate.TYPES, CRATES);
+    public static Type<? extends Crate, ?> resolveCrateType(ConfigurationNode node) throws SerializationException {
+        return Config.resolveType(node, Crate.class, Crate.TYPES, CRATES);
     }
 
     public static Type<Reward, BigDecimal> resolveRewardType(ConfigurationNode node) throws SerializationException {
-        return (Type<Reward, BigDecimal>) Config.<Reward>resolveType(node, Reward.class, Reward.TYPES, REWARDS);
+        return (Type<Reward, BigDecimal>) Config.resolveType(node, Reward.class, Reward.TYPES, REWARDS);
     }
 
     public static Type<? extends Prize, ?> resolvePrizeType(ConfigurationNode node) throws SerializationException {
-        return Config.<Prize>resolveType(node, Prize.class, Prize.TYPES, PRIZES);
+        return Config.resolveType(node, Prize.class, Prize.TYPES, PRIZES);
     }
 
     public static Type<? extends Key, Integer> resolveKeyType(ConfigurationNode node) throws SerializationException {
-        return (Type<? extends Key, Integer>) Config.<Key>resolveType(node, Key.class, Key.TYPES, KEYS);
+        return (Type<? extends Key, Integer>) Config.resolveType(node, Key.class, Key.TYPES, KEYS);
+    }
+
+    public static Type<? extends Effect, ?> resolveEffectType(ConfigurationNode node) throws SerializationException {
+        return Config.resolveType(node, Effect.class, Effect.TYPES, EFFECTS);
     }
 
     private static <T extends Component> Type<? extends T, ?> resolveType(
@@ -105,17 +111,8 @@ public final class Config {
             }
             return types.get(type);
         }
-        var matches = types.values().stream()
-            .distinct()
-            .filter(t -> t.matches(node))
-            .toList();
-        switch (matches.size()) {
-            case 0: throw new SerializationException(node, component, "Unable to identify type.");
-            case 1: return matches.get(0);
-            default:
-                var names = matches.stream().map(Type::name).toList();
-                throw new SerializationException(node, component, "Node matched multiple types: " + names + ".");
-        }
+
+        throw new SerializationException(node, component, "Unable to identify type.");
     }
 
 }

@@ -25,14 +25,8 @@ public abstract class Type<T extends Component<V>, V> {
         return container;
     }
 
-    public abstract boolean matches(ConfigurationNode node);
-
     public abstract T deserializeComponent(ConfigurationNode node) throws SerializationException;
 
-    public abstract void reserializeComponent(ConfigurationNode node, T component) throws SerializationException;
-
     public abstract Tuple<T, V> deserializeReference(ConfigurationNode node, List<? extends ConfigurationNode> values) throws SerializationException;
-
-    public abstract void reserializeReference(ConfigurationNode node, Tuple<T, V> reference) throws SerializationException;
 
 }

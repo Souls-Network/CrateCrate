@@ -124,11 +124,6 @@ public final class StandardKey extends Key {
             super("Standard", CrateCrate.get().getContainer());
         }
 
-        @Override
-        public boolean matches(ConfigurationNode node) {
-            return true;
-        }
-
         /**
          * Deserializes a standard key, defined as:
          *
@@ -149,11 +144,6 @@ public final class StandardKey extends Key {
                 ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).asImmutable())
                 : Optional.<ItemStackSnapshot>empty();
             return new StandardKey(String.valueOf(node.key()), name, lore, icon);
-        }
-
-        @Override
-        public void reserializeComponent(ConfigurationNode node, StandardKey component) throws SerializationException {
-            throw new UnsupportedOperationException(); //TODO
         }
 
         /**
@@ -187,11 +177,6 @@ public final class StandardKey extends Key {
             }
             int quantity = (!values.isEmpty() ? values.get(0) : node.node("quantity")).getInt(1);
             return Tuple.of(key, quantity);
-        }
-
-        @Override
-        public void reserializeReference(ConfigurationNode node, Tuple<StandardKey, Integer> reference) throws SerializationException {
-            throw new UnsupportedOperationException(); //TODO
         }
 
     }

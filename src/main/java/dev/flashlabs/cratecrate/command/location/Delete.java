@@ -3,6 +3,7 @@ package dev.flashlabs.cratecrate.command.location;
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.command.CommandUtils;
 import dev.flashlabs.cratecrate.component.Crate;
+import dev.flashlabs.cratecrate.internal.Registration;
 import dev.flashlabs.cratecrate.internal.Storage;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
@@ -42,7 +43,7 @@ public final class Delete {
             ));
         }
         //TODO: Get registered crate id from database?
-        Optional<Crate> crate = Storage.LOCATIONS.get(location);
+        Optional<Crate> crate = Storage.LOCATIONS.get(location).map(Registration::crate);
         try {
             Storage.deleteLocation(location);
             CrateCrate.get().sendMessage((Audience & LocaleSource) context.cause().audience(), "command.location.delete.success",

@@ -129,17 +129,6 @@ public final class CommandPrize extends Prize<String> {
         }
 
         /**
-         * Matches nodes having a {@code command} child or with a string value
-         * prefixed with {@code '/'}.
-         */
-        @Override
-        public boolean matches(ConfigurationNode node) {
-            return node.hasChild("command") || Optional.ofNullable(node.getString())
-                .map(s -> s.startsWith("/"))
-                .orElse(false);
-        }
-
-        /**
          * Deserializes a command prize, defined as:
          *
          * <pre>{@code
@@ -173,11 +162,6 @@ public final class CommandPrize extends Prize<String> {
             return new CommandPrize(String.valueOf(node.key()), name, lore, icon, command, source, online);
         }
 
-        @Override
-        public void reserializeComponent(ConfigurationNode node, CommandPrize component) throws SerializationException {
-            throw new UnsupportedOperationException(); //TODO
-        }
-
         /**
          * Deserializes a command prize reference, defined as:
          *
@@ -196,7 +180,6 @@ public final class CommandPrize extends Prize<String> {
             CommandPrize prize;
             if (node.isMap()) {
                 prize = deserializeComponent(node);
-                prize = new CommandPrize("CommandPrize@" + node.path(), prize.name, prize.lore, prize.icon, prize.command, prize.source, prize.online);
                 Config.PRIZES.put(prize.id, prize);
             } else {
                 var identifier = Optional.ofNullable(node.getString()).orElse("");
@@ -210,13 +193,8 @@ public final class CommandPrize extends Prize<String> {
                 }
             }
             //TODO: Validate reference value counts
-            var value = Optional.ofNullable((!values.isEmpty() ? values.get(0) : node.node("value")).getString()).orElse("");
+            var value = Optional.ofNullable((!values.isEmpty() ? values.getFirst() : node.node("value")).getString()).orElse("");
             return Tuple.of(prize, value);
-        }
-
-        @Override
-        public void reserializeReference(ConfigurationNode node, Tuple<CommandPrize, String> reference) throws SerializationException {
-            throw new UnsupportedOperationException(); //TODO
         }
 
     }

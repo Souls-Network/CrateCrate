@@ -6,7 +6,6 @@ import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Serializers;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
@@ -24,9 +23,7 @@ import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public final class MoneyPrize extends Prize<BigDecimal> {
 
@@ -118,17 +115,6 @@ public final class MoneyPrize extends Prize<BigDecimal> {
         }
 
         /**
-         * Matches nodes having a {@code money} child or with a string value
-         * prefixed with {@code '$'}.
-         */
-        @Override
-        public boolean matches(ConfigurationNode node) {
-            return node.hasChild("money") || Optional.ofNullable(node.getString())
-                .map(s -> s.startsWith("$"))
-                .orElse(false);
-        }
-
-        /**
          * Deserializes a money prize, defined as:
          *
          * <pre>{@code
@@ -153,11 +139,6 @@ public final class MoneyPrize extends Prize<BigDecimal> {
                 ? Optional.of(Serializers.CURRENCY.deserialize(node.node("money", "currency")))
                 : Optional.<Currency>empty();
             return new MoneyPrize(String.valueOf(node.key()), name, lore, icon, currency);
-        }
-
-        @Override
-        public void reserializeComponent(ConfigurationNode node, MoneyPrize component) throws SerializationException {
-            throw new UnsupportedOperationException(); //TODO
         }
 
         /**
@@ -199,11 +180,6 @@ public final class MoneyPrize extends Prize<BigDecimal> {
             //TODO: Validate reference value counts
             var amount = new BigDecimal((!values.isEmpty() ? values.get(0) : node.node("amount")).getString("0"));
             return Tuple.of(prize, amount);
-        }
-
-        @Override
-        public void reserializeReference(ConfigurationNode node, Tuple<MoneyPrize, BigDecimal> reference) throws SerializationException {
-            throw new UnsupportedOperationException(); //TODO
         }
 
     }

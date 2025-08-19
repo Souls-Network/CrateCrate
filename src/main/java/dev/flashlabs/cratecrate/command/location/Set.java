@@ -4,6 +4,7 @@ import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.command.CommandUtils;
 import dev.flashlabs.cratecrate.component.Crate;
 import dev.flashlabs.cratecrate.internal.Config;
+import dev.flashlabs.cratecrate.internal.Registration;
 import dev.flashlabs.cratecrate.internal.Storage;
 import io.leangen.geantyref.TypeToken;
 import net.kyori.adventure.audience.Audience;
@@ -40,7 +41,7 @@ public final class Set {
         var crate = context.requireOne(Parameter.key("crate", TypeToken.get(Crate.class)));
         location = location.withBlockPosition(location.blockPosition());
         if (Storage.LOCATIONS.containsKey(location)) {
-            Optional<Crate> registered = Storage.LOCATIONS.get(location);
+            Optional<Crate> registered = Storage.LOCATIONS.get(location).map(Registration::crate);
             throw new CommandException(CrateCrate.get().getMessage("command.location.set.invalid-location", ((LocaleSource) context.cause().audience()).locale(),
                     "location", location.worldKey().asString() + " " + location.position(),
                     "crate", registered.map(a -> a.id()).orElse("unavailable")

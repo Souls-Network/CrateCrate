@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import dev.flashlabs.cratecrate.command.Base;
 import dev.flashlabs.cratecrate.component.Crate;
 import dev.flashlabs.cratecrate.component.Reward;
+import dev.flashlabs.cratecrate.component.effect.*;
 import dev.flashlabs.cratecrate.component.key.Key;
 import dev.flashlabs.cratecrate.component.key.StandardKey;
 import dev.flashlabs.cratecrate.component.prize.CommandPrize;
@@ -21,8 +22,15 @@ import org.spongepowered.api.event.lifecycle.ConstructPluginEvent;
 import org.spongepowered.api.event.lifecycle.LoadedGameEvent;
 import org.spongepowered.api.event.lifecycle.RefreshGameEvent;
 import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
+import org.spongepowered.configurate.ConfigurationOptions;
+import org.spongepowered.configurate.objectmapping.ObjectMapper;
+import org.spongepowered.configurate.serialize.TypeSerializerCollection;
+import org.spongepowered.configurate.util.MapFactory;
 import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.builtin.jvm.Plugin;
+
+import java.util.Map;
+import java.util.function.Consumer;
 
 @Plugin("cratecrate")
 public final class CrateCrate extends PluginInstance {
@@ -38,17 +46,15 @@ public final class CrateCrate extends PluginInstance {
     @Listener
     public void onConstruct(ConstructPluginEvent event) {
         Crate.TYPES.put(Crate.TYPE.name(), Crate.TYPE);
-        Crate.TYPES.put(Crate.class.getName(), Crate.TYPE);
         Reward.TYPES.put(Reward.TYPE.name(), Reward.TYPE);
-        Reward.TYPES.put(Reward.class.getName(), Reward.TYPE);
         Prize.TYPES.put(CommandPrize.TYPE.name(), CommandPrize.TYPE);
-        Prize.TYPES.put(CommandPrize.class.getName(), CommandPrize.TYPE);
         Prize.TYPES.put(ItemPrize.TYPE.name(), ItemPrize.TYPE);
-        Prize.TYPES.put(ItemPrize.class.getName(), ItemPrize.TYPE);
         Prize.TYPES.put(MoneyPrize.TYPE.name(), MoneyPrize.TYPE);
-        Prize.TYPES.put(MoneyPrize.class.getName(), MoneyPrize.TYPE);
         Key.TYPES.put(StandardKey.TYPE.name(), StandardKey.TYPE);
-        Key.TYPES.put(StandardKey.class.getName(), StandardKey.TYPE);
+        Effect.TYPES.put(FireworkEffect.TYPE.name(), FireworkEffect.TYPE);
+        Effect.TYPES.put(ParticleEffect.TYPE.name(), FireworkEffect.TYPE);
+        Effect.TYPES.put(PotionEffect.TYPE.name(), PotionEffect.TYPE);
+        Effect.TYPES.put(SoundEffect.TYPE.name(), SoundEffect.TYPE);
         Sponge.eventManager().registerListeners(container, new Listeners());
     }
 

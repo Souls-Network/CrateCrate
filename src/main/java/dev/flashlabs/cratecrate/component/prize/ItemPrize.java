@@ -107,24 +107,6 @@ public final class ItemPrize extends Prize<Integer> {
         }
 
         /**
-         * Matches nodes having a {@code item} child or identifying an item
-         * type.
-         */
-        @Override
-        public boolean matches(ConfigurationNode node) {
-            return node.hasChild("item") || Optional.ofNullable(node.getString())
-                .map(s -> {
-                    //TODO: Consider validating ResourceKey format via regex
-                    try {
-                        return RegistryTypes.ITEM_TYPE.get().findValue(ResourceKey.resolve(s)).isPresent();
-                    } catch (Exception ignored) {
-                        return false;
-                    }
-                })
-                .orElse(false);
-        }
-
-        /**
          * Deserializes an item prize, defined as:
          *
          * <pre>{@code
@@ -146,11 +128,6 @@ public final class ItemPrize extends Prize<Integer> {
                 : Optional.<ItemStackSnapshot>empty();
             var item = Serializers.ITEM_STACK.deserialize(node.node("item")).asImmutable();
             return new ItemPrize(String.valueOf(node.key()), name, lore, icon, item);
-        }
-
-        @Override
-        public void reserializeComponent(ConfigurationNode node, ItemPrize component) throws SerializationException {
-            throw new UnsupportedOperationException(); //TODO
         }
 
         /**
@@ -187,11 +164,6 @@ public final class ItemPrize extends Prize<Integer> {
             //TODO: Validate reference value counts
             var quantity = (!values.isEmpty() ? values.get(0) : node.node("quantity")).getInt(1);
             return Tuple.of(prize, quantity);
-        }
-
-        @Override
-        public void reserializeReference(ConfigurationNode node, Tuple<ItemPrize, Integer> reference) throws SerializationException {
-            throw new UnsupportedOperationException(); //TODO
         }
 
     }

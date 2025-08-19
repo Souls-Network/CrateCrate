@@ -4,20 +4,18 @@ import net.kyori.adventure.text.Component;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Cause;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.item.inventory.container.InteractContainerEvent;
 import org.spongepowered.api.item.inventory.*;
 import org.spongepowered.api.item.inventory.menu.ClickType;
 import org.spongepowered.api.item.inventory.menu.InventoryMenu;
-import org.spongepowered.api.item.inventory.menu.handler.CloseHandler;
-import org.spongepowered.api.item.inventory.menu.handler.SlotClickHandler;
 import org.spongepowered.api.item.inventory.type.ViewableInventory;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.plugin.PluginContainer;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * Represents an inventory which can be displayed to multiple players. Events
@@ -29,6 +27,7 @@ public final class View {
     private final Map<Integer, Element> elements = new HashMap<>();
     private final PluginContainer container;
     private final InventoryMenu menu;
+    private final Consumer<InteractContainerEvent.Close> closeHandler;
 
     private View(Builder builder, PluginContainer container) {
         inventory = ViewableInventory.builder()
@@ -38,22 +37,18 @@ public final class View {
                 .completeStructure()
                 .plugin(container).build();
         menu = inventory.asMenu();
-        menu.registerSlotClick(new SlotClickHandler() {
-                    @Override
-                    public boolean handle(Cause cause, Container container, Slot slot, int slotIndex, ClickType<?> clickType) {
-
-                        return View.this.onClick(cause, container, slot, slotIndex, clickType);
-                    }
-                });
+        menu.registerSlotClick(View.this::onClick);
         menu.setTitle(builder.title);
         this.container = container;
+
+        this.closeHandler = builder.closeHandler;
     }
 
     /**
      * Opens this view for the player.
      */
     public void open(ServerPlayer player) {
-        menu.open(player);
+        menu.open(player).ifPresent(container -> Sponge.eventManager().registerListeners(View.this.container, new ViewListener(container)));
     }
 
     /**
@@ -95,7 +90,7 @@ public final class View {
         inventory.set(index, item);
     }
 
-    private boolean onClick(Cause cause, Container container, Slot slot, int slotIndex, ClickType<?> clickType) {
+    private boolean onClick(Cause cause, Container ignoredContainer, Slot slot, int slotIndex, ClickType<?> clickType) {
         cause.first(ServerPlayer.class).ifPresent(player -> {
             if (elements.containsKey(slotIndex)) {
                 elements.get(slotIndex).onClick(new Action.Click(player, this, slot, slotIndex, clickType));
@@ -124,7 +119,7 @@ public final class View {
 
         private final ContainerType archetype;
         private Component title = Component.empty();
-        private CloseHandler closeHandler = (cause, container) -> {};
+        private Consumer<InteractContainerEvent.Close> closeHandler = event -> {};
 
         private Builder(ContainerType archetype) {
             this.archetype = archetype;
@@ -149,7 +144,7 @@ public final class View {
         /**
          * Adds an action for when the view is closed.
          */
-        public Builder onClose(CloseHandler onClose) {
+        public Builder onClose(Consumer<InteractContainerEvent.Close> onClose) {
             closeHandler = onClose;
             return this;
         }
@@ -163,4 +158,18 @@ public final class View {
 
     }
 
+    private class ViewListener {
+        private final Container container;
+
+        public ViewListener(Container container) {
+            this.container = container;
+        }
+
+        @Listener
+        public void onClose(InteractContainerEvent.Close event) {
+            if(event.container().equals(container)) {
+                View.this.closeHandler.accept(event);
+            }
+        }
+    }
 }

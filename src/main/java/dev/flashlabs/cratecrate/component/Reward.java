@@ -11,6 +11,7 @@ import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackLike;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -31,6 +32,8 @@ public final class Reward extends Component<BigDecimal> {
     private final Optional<String> name;
     private final Optional<List<String>> lore;
     private final Optional<ItemStackSnapshot> icon;
+    private final Optional<String> message;
+    private final Optional<String> broadcast;
     private final List<Tuple<? extends Prize, ?>> prizes;
 
     private Reward(
@@ -38,12 +41,16 @@ public final class Reward extends Component<BigDecimal> {
         Optional<String> name,
         Optional<List<String>> lore,
         Optional<ItemStackSnapshot> icon,
+        Optional<String> message,
+        Optional<String> broadcast,
         List<Tuple<? extends Prize, ?>> prizes
     ) {
         super(id);
         this.name = name;
         this.lore = lore;
         this.icon = icon;
+        this.message = message;
+        this.broadcast = broadcast;
         this.prizes = prizes;
     }
 
@@ -107,6 +114,16 @@ public final class Reward extends Component<BigDecimal> {
         return base;
     }
 
+
+    public Optional<String> message() {
+        return message;
+    }
+
+    public Optional<String> broadcast() {
+        return broadcast;
+    }
+
+
     public List<Tuple<? extends Prize, ?>> prizes() {
         return prizes;
     }
@@ -119,11 +136,6 @@ public final class Reward extends Component<BigDecimal> {
 
         public RewardType() {
             super("Reward", CrateCrate.get().getContainer());
-        }
-
-        @Override
-        public boolean matches(ConfigurationNode node) {
-            return true;
         }
 
         /**
@@ -140,24 +152,19 @@ public final class Reward extends Component<BigDecimal> {
         @Override
         public Reward deserializeComponent(ConfigurationNode node) throws SerializationException {
             var name = Optional.ofNullable(node.node("name").get(String.class));
-            var lore = node.node("lore").isList()
-                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(List::copyOf)
-                : Optional.<List<String>>empty();
-            var icon = node.hasChild("icon")
-                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).asImmutable())
-                : Optional.<ItemStackSnapshot>empty();
+            var lore = Optional.ofNullable(node.node("lore").getList(String.class)).map(List::copyOf);
+            var icon = Optional.ofNullable(Serializers.ITEM_STACK.deserialize(node.node("icon"))).map(ItemStackLike::asImmutable);
+            var message = Optional.ofNullable(node.node("message").get(String.class));
+            var broadcast = Optional.ofNullable(node.node("broadcast").get(String.class));
+
             var prizes = new ArrayList<Tuple<? extends Prize, ?>>();
             for (ConfigurationNode prize : node.node("prizes").childrenList()) {
                 var component = prize.isList() ? prize.node(0) : prize;
                 var values = prize.childrenList().subList(prize.isList() ? 1 : 0, prize.childrenList().size());
                 prizes.add(Config.resolvePrizeType(component).deserializeReference(component, values));
             }
-            return new Reward(String.valueOf(node.key()), name, lore, icon, List.copyOf(prizes));
-        }
 
-        @Override
-        public void reserializeComponent(ConfigurationNode node, Reward component) throws SerializationException {
-            throw new UnsupportedOperationException(); //TODO
+            return new Reward(String.valueOf(node.key()), name, lore, icon, message, broadcast, List.copyOf(prizes));
         }
 
         /**
@@ -181,10 +188,10 @@ public final class Reward extends Component<BigDecimal> {
             if (node.isMap()) {
                 if (node.hasChild("prizes")) {
                     reward = deserializeComponent(node);
-                    reward = new Reward("Reward@" + node.path(), reward.name, reward.lore, reward.icon, reward.prizes);
+                    reward = new Reward("Reward@" + node.path(), reward.name, reward.lore, reward.icon, reward.message, reward.broadcast, reward.prizes);
                 } else {
                     var prize = Config.resolvePrizeType(node).deserializeReference(node, values.subList(0, values.isEmpty() ? 0 : values.size() - 1));
-                    reward = new Reward("Reward@" + node.path(), Optional.empty(), Optional.empty(), Optional.empty(), List.of(prize));
+                    reward = new Reward("Reward@" + node.path(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), List.of(prize));
                 }
                 Config.REWARDS.put(reward.id, reward);
             } else {
@@ -193,18 +200,13 @@ public final class Reward extends Component<BigDecimal> {
                     reward = Config.REWARDS.get(identifier);
                 } else {
                     var prize = Config.resolvePrizeType(node).deserializeReference(node, values.subList(0, values.isEmpty() ? 0 : values.size() - 1));
-                    reward = new Reward(identifier, Optional.empty(), Optional.empty(), Optional.empty(), List.of(prize));
+                    reward = new Reward(identifier, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), List.of(prize));
                     Config.REWARDS.put(reward.id, reward);
                 }
             }
             //TODO: Validate reference value counts and existence
             var value = new BigDecimal((!values.isEmpty() ? values.get(0) : node.node("weight")).getString());
             return Tuple.of(reward, value);
-        }
-
-        @Override
-        public void reserializeReference(ConfigurationNode node, Tuple<Reward, BigDecimal> reference) throws SerializationException {
-            throw new UnsupportedOperationException(); //TODO
         }
 
     }

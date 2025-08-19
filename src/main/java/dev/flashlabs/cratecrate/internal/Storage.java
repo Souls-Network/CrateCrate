@@ -20,7 +20,7 @@ import javax.sql.DataSource;
 
 public final class Storage {
 
-    public static final Map<ServerLocation, Optional<Crate>> LOCATIONS = new HashMap<>();
+    public static final Map<ServerLocation, Optional<Registration>> LOCATIONS = new HashMap<>();
 
     private static final Path DIRECTORY = Sponge.configManager()
         .pluginConfig(CrateCrate.get().getContainer())
@@ -29,6 +29,9 @@ public final class Storage {
     private static DataSource source;
 
     public static void load() {
+        LOCATIONS.values().forEach(o -> o.ifPresent(Registration::stopEffects));
+        LOCATIONS.clear();
+
         try {
             Class.forName("dev.flashlabs.cratecrate.shadow.org.h2.Driver");
             Files.createDirectories(DIRECTORY);
@@ -60,15 +63,18 @@ public final class Storage {
                     if (world.isPresent()) {
                         var location = world.get().location(result.getInt(2), result.getInt(3), result.getInt(4));
                         var crate = Optional.ofNullable(Config.CRATES.get(result.getString(5)));
-                        LOCATIONS.put(location, crate);
+                        Optional<Registration> registration = Optional.ofNullable(Config.CRATES.get(result.getString(5))).map(c -> new Registration(location, c));
+                        LOCATIONS.put(location, registration);
                         if (crate.isEmpty()) {
                             CrateCrate.get().logger().error("Location is set to unknown crate: " + result.getString(5) + ".");
                         }
                     } else {
                         CrateCrate.get().logger().error("Location is set to unknown world: " + result.getString(1) + ".");
+                        CrateCrate.get().logger().error("Storage loading halted early, certain features may or may not be operational.");
                     }
                 }
             }
+            LOCATIONS.values().forEach(o -> o.ifPresent(Registration::startEffects));
         } catch (ClassNotFoundException | IOException | SQLException e) {
             CrateCrate.get().logger().error("Error loading storage: ", e);
         }
@@ -121,7 +127,11 @@ public final class Storage {
             statement.setInt(4, location.blockZ());
             statement.setString(5, crate.id());
             statement.executeUpdate();
-            LOCATIONS.put(location, Optional.of(crate));
+
+            Registration registration = new Registration(location, crate);
+            registration.startEffects();
+
+            LOCATIONS.put(location, Optional.of(registration));
         }
     }
 
@@ -136,7 +146,7 @@ public final class Storage {
             statement.setInt(3, location.blockY());
             statement.setInt(4, location.blockZ());
             statement.executeUpdate();
-            LOCATIONS.remove(location);
+            Optional.ofNullable(LOCATIONS.remove(location)).ifPresent(o -> o.ifPresent(Registration::stopEffects));
         }
     }
 

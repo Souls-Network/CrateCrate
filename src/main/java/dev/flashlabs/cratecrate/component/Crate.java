@@ -1,9 +1,12 @@
 package dev.flashlabs.cratecrate.component;
 
 import dev.flashlabs.cratecrate.CrateCrate;
+import dev.flashlabs.cratecrate.component.effect.Effect;
 import dev.flashlabs.cratecrate.component.key.Key;
+import dev.flashlabs.cratecrate.component.opener.Opener;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Serializers;
+import dev.flashlabs.flashlibs.message.MessageTemplate;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.apache.commons.lang3.text.WordUtils;
@@ -30,7 +33,11 @@ public final class Crate extends Component<Void> {
     private final Optional<String> name;
     private final Optional<List<String>> lore;
     private final Optional<ItemStackSnapshot> icon;
+    private final Optional<String> message;
+    private final Optional<String> broadcast;
+    private final Optional<Opener> opener;
     private final List<Tuple<? extends Key, Integer>> keys;
+    private final Map<Effect.Action, List<Tuple<? extends Effect, ?>>> effects;
     private final List<Tuple<Reward, BigDecimal>> rewards;
 
     private Crate(
@@ -38,14 +45,22 @@ public final class Crate extends Component<Void> {
         Optional<String> name,
         Optional<List<String>> lore,
         Optional<ItemStackSnapshot> icon,
+        Optional<String> message,
+        Optional<String> broadcast,
+        Optional<Opener> opener,
         List<Tuple<? extends Key, Integer>> keys,
+        Map<Effect.Action, List<Tuple<? extends Effect, ?>>> effects,
         List<Tuple<Reward, BigDecimal>> rewards
     ) {
         super(id);
         this.name = name;
         this.lore = lore;
         this.icon = icon;
+        this.message = message;
+        this.broadcast = broadcast;
+        this.opener = opener;
         this.keys = keys;
+        this.effects = effects;
         this.rewards = rewards;
     }
 
@@ -91,15 +106,28 @@ public final class Crate extends Component<Void> {
         return keys;
     }
 
+    public Map<Effect.Action, List<Tuple<? extends Effect, ?>>> effects() {
+        return effects;
+    }
+
     public List<Tuple<Reward, BigDecimal>> rewards() {
         return rewards;
     }
 
     public boolean open(ServerPlayer player, ServerLocation location) {
-        return give(player, roll(player), location);
+        effects.get(Effect.Action.OPEN).forEach(e -> e.first().give(player, location, e.second()));
+        return opener.map(o -> o.open(player, this, location)).orElseGet(() -> give(player, roll(player), location));
     }
 
     public boolean give(ServerPlayer player, Tuple<? extends Reward, BigDecimal> reward, ServerLocation location) {
+        Optional.ofNullable(reward.first().message().orElse(message.orElse(null)))
+                .filter(m -> !m.isEmpty() && !message.orElse("x").isEmpty())
+                .ifPresent(m -> player.sendMessage(MessageTemplate.of(m).get(
+                        "player", player.name(),
+                        "crate", name(Optional.empty()),
+                        "reward", reward.first().name(Optional.of(reward.second()))
+                )));
+        effects.get(Effect.Action.GIVE).forEach(e -> e.first().give(player, location, e.second()));
         return reward.first().give(player.user());
     }
 
@@ -126,11 +154,6 @@ public final class Crate extends Component<Void> {
             super("Crate", CrateCrate.get().getContainer());
         }
 
-        @Override
-        public boolean matches(ConfigurationNode node) {
-            return true;
-        }
-
         /**
          * Deserializes a crate, defined as:
          *
@@ -146,39 +169,45 @@ public final class Crate extends Component<Void> {
         @Override
         public Crate deserializeComponent(ConfigurationNode node) throws SerializationException {
             var name = Optional.ofNullable(node.node("name").get(String.class));
-            var lore = node.node("lore").isList()
-                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(List::copyOf)
-                : Optional.<List<String>>empty();
-            var icon = node.hasChild("icon")
-                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).asImmutable())
-                : Optional.<ItemStackSnapshot>empty();
+            var lore = node.node("lore").isList() ? Optional.ofNullable(node.node("lore").getList(String.class)).map(List::copyOf) : Optional.<List<String>>empty();
+            var icon = node.hasChild("icon") ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).asImmutable()) : Optional.<ItemStackSnapshot>empty();
+            var message = Optional.ofNullable(node.node("message").get(String.class));
+            var broadcast = Optional.ofNullable(node.node("broadcast").get(String.class));
+            var opener = Optional.ofNullable(node.node("opener")).map(Opener::deserialize);
+
             var keys = new ArrayList<Tuple<? extends Key, Integer>>();
             for (ConfigurationNode key : node.node("keys").childrenList()) {
                 var component = key.isList() ? key.node(0) : key;
                 var values = key.childrenList().subList(key.isList() ? 1 : 0, key.childrenList().size());
                 keys.add(Config.resolveKeyType(component).deserializeReference(component, values));
             }
+
+            Map<Effect.Action, List<Tuple<? extends Effect, ?>>> effects = new HashMap<>();
+            for(Effect.Action action : Effect.Action.values()) {
+                var effectNode = node.node("effects", action.name().toLowerCase());
+
+                var tuples = new ArrayList<Tuple<? extends Effect, ?>>();
+                for (ConfigurationNode effect : effectNode.childrenList()) {
+                    var component = effect.isList() ? effect.node(0) : effect;
+                    var values = effect.childrenList().subList(effect.isList() ? 1 : 0, effect.childrenList().size());
+                    tuples.add(Config.resolveEffectType(component).deserializeReference(component, values));
+                }
+
+                effects.put(action, tuples);
+            }
+
+
             var rewards = new ArrayList<Tuple<Reward, BigDecimal>>();
             for (ConfigurationNode reward : node.node("rewards").childrenList()) {
                 var component = reward.isList() ? reward.node(0) : reward;
                 var values = reward.childrenList().subList(reward.isList() ? 1 : 0, reward.childrenList().size());
                 rewards.add(Config.resolveRewardType(component).deserializeReference(component, values));
             }
-            return new Crate(String.valueOf(node.key()), name, lore, icon, List.copyOf(keys), List.copyOf(rewards));
-        }
-
-        @Override
-        public void reserializeComponent(ConfigurationNode node, Crate component) throws SerializationException {
-            throw new UnsupportedOperationException(); //TODO
+            return new Crate(String.valueOf(node.key()), name, lore, icon, message, broadcast, opener, List.copyOf(keys), Map.copyOf(effects), List.copyOf(rewards));
         }
 
         @Override
         public Tuple<Crate, Void> deserializeReference(ConfigurationNode node, List<? extends ConfigurationNode> values) {
-            throw new AssertionError("Crates cannot be referenced.");
-        }
-
-        @Override
-        public void reserializeReference(ConfigurationNode node, Tuple<Crate, Void> reference) {
             throw new AssertionError("Crates cannot be referenced.");
         }
 

@@ -4,10 +4,12 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.item.inventory.container.ClickContainerEvent;
 import org.spongepowered.api.event.item.inventory.container.InteractContainerEvent;
+import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.item.inventory.menu.ClickType;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 
+import java.awt.event.ContainerEvent;
 import java.util.function.Consumer;
 
 /**
