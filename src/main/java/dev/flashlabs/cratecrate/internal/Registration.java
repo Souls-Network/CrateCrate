@@ -34,9 +34,9 @@ public final class Registration {
     public void startEffects() {
         stopEffects();
         crate.effects().getOrDefault(Effect.Action.IDLE, List.of()).stream()
-            .filter(e -> e.first() instanceof ParticleEffect) //TODO
-            .forEach(e -> effects.add(((ParticleEffect) e.first())
-                .start(location.add(0.5, 0.5, 0.5).add(((Tuple<Boolean, Vector3d>) e.second()).second()))));
+            .filter(e -> e.component() instanceof ParticleEffect particleEffect) //TODO
+            .forEach(e -> effects.add(((ParticleEffect) e.component)
+                .start(location.add(0.5, 0.5, 0.5).add(((Tuple<Effect.Locatable.Target, Vector3d>) e.value()).second()))));
     }
 
     public void stopEffects() {

@@ -2,6 +2,7 @@ package dev.flashlabs.cratecrate.component.effect;
 
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.Type;
+import dev.flashlabs.cratecrate.component.ValueHolder;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Serializers;
 import net.kyori.adventure.sound.Sound;
@@ -21,7 +22,7 @@ import java.util.Optional;
 
 public final class SoundEffect extends Effect.Locatable {
 
-    public static final Type<SoundEffect, Tuple<Target, Vector3d>> TYPE = new SoundEffectType();
+    public static final Type<SoundEffect> TYPE = new SoundEffectType();
 
     private final SoundType type;
     private final float volume;
@@ -68,38 +69,37 @@ public final class SoundEffect extends Effect.Locatable {
         return true;
     }
 
-    private static final class SoundEffectType extends Type<SoundEffect, Tuple<Target, Vector3d>> {
+    private static final class SoundEffectType extends Type<SoundEffect> {
 
         private SoundEffectType() {
             super("Sound", CrateCrate.get().getContainer());
         }
 
         @Override
-        public SoundEffect deserializeComponent(ConfigurationNode node) throws SerializationException {
+        public SoundEffect deserializeComponent(String id, ConfigurationNode node) throws SerializationException {
             SoundType type = Serializers.SOUND_TYPE.deserialize(node.node("sound"));
             float volume = node.node("sound.volume").getFloat(1.0f);
             float pitch = node.node("sound.pitch").getFloat(1.0f);
-            return new SoundEffect(String.valueOf(node.key()), type, volume, pitch);
+            return new SoundEffect(id, type, volume, pitch);
         }
 
         @Override
-        public Tuple<SoundEffect, Tuple<Target, Vector3d>> deserializeReference(ConfigurationNode node, List<? extends ConfigurationNode> values) throws SerializationException {
+        public ValueHolder<SoundEffect, ?> deserializeReference(ConfigurationNode node) throws SerializationException {
             SoundEffect effect;
             if (node.isMap()) {
-                effect = deserializeComponent(node);
-                effect = new SoundEffect("SoundEffect@" + node.path(), effect.type, effect.volume, effect.pitch);
+                effect = deserializeComponent("SoundEffect@" + node.path(), node);
                 Config.EFFECTS.put(effect.id, effect);
             } else {
                 String identifier = node.getString();
                 if (Config.EFFECTS.containsKey(identifier)) {
                     effect = (SoundEffect) Config.EFFECTS.get(identifier);
                 } else {
-                    SoundType type = node.get(Serializers.CATALOG_TYPE.of(SoundType.class));
-                    effect = new SoundEffect(identifier, type, Optional.empty(), Optional.empty());
+                    SoundType type = Serializers.SOUND_TYPE.deserialize(node);
+                    effect = new SoundEffect(identifier, type, 1.0f, 1.0f);
                     Config.EFFECTS.put(effect.id, effect);
                 }
             }
-            return Tuple.of(effect, deserializeReferenceValue(node, values));
+            return new EffectHolder<>(effect, deserializeReferenceValue(node));
         }
 
     }

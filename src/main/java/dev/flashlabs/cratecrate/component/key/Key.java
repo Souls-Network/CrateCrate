@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public abstract class Key extends Component<Integer> {
 
-    public static final Map<String, Type<? extends Key, ?>> TYPES = new HashMap<>();
+    public static final Map<String, Type<? extends Key>> TYPES = new HashMap<>();
 
     protected Key(String id) {
         super(id);

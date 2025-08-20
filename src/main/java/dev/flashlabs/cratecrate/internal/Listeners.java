@@ -2,6 +2,7 @@ package dev.flashlabs.cratecrate.internal;
 
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.Crate;
+import dev.flashlabs.cratecrate.component.effect.Effect;
 import dev.flashlabs.cratecrate.component.key.Key;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
@@ -24,12 +25,12 @@ public final class Listeners {
 
     @Listener
     public void onInteractBlockPrimary(InteractBlockEvent.Primary.Start event, @Root ServerPlayer player) {
-        event.block().location().flatMap(l -> preInteract(event, player, l)).ifPresent(t -> {
-            if (!player.hasPermission("cratecrate.crates." + t.first().id() + ".preview")) {
+        event.block().location().flatMap(l -> preInteract(event, player, l)).map(Tuple::first).map(Registration::crate).ifPresent(t -> {
+            if (!player.hasPermission("cratecrate.crates." + t.id() + ".preview")) {
                 CrateCrate.get().sendMessage(player, "interact.crates.preview.no-permission",
-                        "create", t.first().name(Optional.empty()));
+                        "create", t.name(Optional.empty()));
             } else {
-                Utils.preview(t.first(), Inventory.CLOSE).open(player);
+                Utils.preview(t, Inventory.CLOSE).open(player);
             }
         });
     }
@@ -37,22 +38,22 @@ public final class Listeners {
     @Listener
     public void onInteractBlockSecondary(InteractBlockEvent.Secondary event, @Root ServerPlayer player) {
         event.block().location().flatMap(l -> preInteract(event, player, l)).ifPresent(t -> {
-           if(Utils.checkKeys(player, t.first())) {
+           if(Utils.checkKeys(player, t.first().crate())) {
                Utils.confirm(t).open(player);
            }
         });
     }
 
-    private <T extends InteractEvent & Cancellable> Optional<Tuple<Crate, ServerLocation>> preInteract(T event, ServerPlayer player, ServerLocation location) {
+    private <T extends InteractEvent & Cancellable> Optional<Tuple<Registration, ServerLocation>> preInteract(T event, ServerPlayer player, ServerLocation location) {
         return Optional.ofNullable(Storage.LOCATIONS.get(location)).flatMap(o -> {
             event.setCancelled(true);
             if (o.isEmpty()) {
                 CrateCrate.get().sendMessage(player, "interact.crates.unavailable");
-            } else if (!player.hasPermission("cratecrate.crates." + o.get().id() + ".base")) {
+            } else if (!player.hasPermission("cratecrate.crates." + o.get().crate().id() + ".base")) {
                 CrateCrate.get().sendMessage(player, "interact.crates.no-permission",
-                        "crate", o.get().name(Optional.empty())
+                        "crate", o.get().crate().name(Optional.empty())
                 );
-                o.get().effects().get(Effect.Action.REJECT).forEach(e -> e.getFirst().give(player, location, e.getSecond()));
+                o.get().crate().effects().get(Effect.Action.REJECT).forEach(e -> e.give(player, location));
             } else {
                 return o
                         .filter(c -> event.context().get(EventContextKeys.USED_HAND).map(a -> a.equals(HandTypes.MAIN_HAND.get())).orElse(false))

@@ -3,6 +3,7 @@ package dev.flashlabs.cratecrate.component.opener;
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.Crate;
 import dev.flashlabs.cratecrate.component.Reward;
+import dev.flashlabs.cratecrate.component.RewardValueHolder;
 import dev.flashlabs.cratecrate.internal.Inventory;
 import dev.flashlabs.cratecrate.internal.Utils;
 import dev.flashlabs.flashlibs.inventory.Element;
@@ -24,12 +25,12 @@ public final class GuiOpener extends Opener {
 
     @Override
     public boolean open(ServerPlayer player, Crate crate, ServerLocation location) {
-        Tuple<? extends Reward, BigDecimal> reward = crate.roll(player);
+        RewardValueHolder reward = crate.roll(player);
         View.builder(ContainerTypes.GENERIC_3X3.get())
             .title(crate.name(Optional.empty()))
             .build(CrateCrate.get().getContainer())
             .define(Layout.builder(3, 3)
-                .set(Element.of(reward.first().icon(Optional.of(reward.second())), a -> a.callback(v -> {
+                .set(Element.of(reward.icon(), a -> a.callback(v -> {
                     Utils.preview(reward, Element.of(crate.icon(Optional.empty()), a2 -> a2.callback(v2 -> {
                         v.open(a2.getPlayer());
                     }))).open(a.getPlayer());

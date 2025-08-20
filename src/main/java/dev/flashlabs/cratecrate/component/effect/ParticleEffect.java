@@ -2,6 +2,7 @@ package dev.flashlabs.cratecrate.component.effect;
 
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.Type;
+import dev.flashlabs.cratecrate.component.ValueHolder;
 import dev.flashlabs.cratecrate.component.path.Path;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Serializers;
@@ -31,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 public final class ParticleEffect extends Effect.Locatable {
 
-    public static final Type<ParticleEffect, Tuple<Target, Vector3d>> TYPE = new ParticleEffectType();
+    public static final Type<ParticleEffect> TYPE = new ParticleEffectType();
 
     private final ParticleType type;
     private final Optional<Color> color;
@@ -121,7 +122,7 @@ public final class ParticleEffect extends Effect.Locatable {
 
     }
 
-    private static final class ParticleEffectType extends Type<ParticleEffect, Tuple<Target, Vector3d>> {
+    private static final class ParticleEffectType extends Type<ParticleEffect> {
 
         private ParticleEffectType() {
             super("Particle", CrateCrate.get().getContainer());
@@ -139,11 +140,11 @@ public final class ParticleEffect extends Effect.Locatable {
          * }</pre>
          */
         @Override
-        public ParticleEffect deserializeComponent(ConfigurationNode node) throws SerializationException {
+        public ParticleEffect deserializeComponent(String id, ConfigurationNode node) throws SerializationException {
             ParticleType type = Serializers.PARTICLE_TYPE.deserialize(node.node("particle"));
             Optional<Color> color = Optional.ofNullable(node.node("particle.color")).map(ConfigurationNode::getInt).map(Color::ofRgb);
             Path path = Path.deserialize(node.node("path"));
-            return new ParticleEffect(String.valueOf(node.key()), type, color, path);
+            return new ParticleEffect(id, type, color, path);
         }
 
         /**
@@ -158,11 +159,10 @@ public final class ParticleEffect extends Effect.Locatable {
          * }</pre>
          */
         @Override
-        public Tuple<ParticleEffect, Tuple<Target, Vector3d>> deserializeReference(ConfigurationNode node, List<? extends ConfigurationNode> values) throws SerializationException {
+        public ValueHolder<ParticleEffect, ?> deserializeReference(ConfigurationNode node) throws SerializationException {
             ParticleEffect effect;
             if (node.isMap()) {
-                effect = deserializeComponent(node);
-                effect = new ParticleEffect("ParticleEffect@" + node.path(), effect.type, effect.color, effect.path);
+                effect = deserializeComponent("ParticleEffect@" + node.path(), node);
                 Config.EFFECTS.put(effect.id, effect);
             } else {
                 String identifier = node.getString();
@@ -172,7 +172,7 @@ public final class ParticleEffect extends Effect.Locatable {
                     throw new AssertionError();
                 }
             }
-            return Tuple.of(effect, deserializeReferenceValue(node, values));
+            return new EffectHolder<>(effect, deserializeReferenceValue(node));
         }
 
     }

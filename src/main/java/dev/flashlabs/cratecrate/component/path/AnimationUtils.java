@@ -1,5 +1,7 @@
 package dev.flashlabs.cratecrate.component.path;
 
+import org.spongepowered.math.TrigMath;
+
 public final class AnimationUtils {
 
     public static double[] shift(double radians, int segments) {

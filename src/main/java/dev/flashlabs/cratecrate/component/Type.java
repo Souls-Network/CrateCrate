@@ -7,7 +7,7 @@ import org.spongepowered.plugin.PluginContainer;
 
 import java.util.List;
 
-public abstract class Type<T extends Component<V>, V> {
+public abstract class Type<T extends Component<?>> {
 
     private final String name;
     private final PluginContainer container;
@@ -25,8 +25,12 @@ public abstract class Type<T extends Component<V>, V> {
         return container;
     }
 
-    public abstract T deserializeComponent(ConfigurationNode node) throws SerializationException;
+    public T deserializeComponent(Tuple<String, ConfigurationNode> tuple) throws SerializationException {
+        return deserializeComponent(tuple.first(), tuple.second());
+    }
 
-    public abstract Tuple<T, V> deserializeReference(ConfigurationNode node, List<? extends ConfigurationNode> values) throws SerializationException;
+    public abstract T deserializeComponent(String id, ConfigurationNode node) throws SerializationException;
+
+    public abstract ValueHolder<T, ?> deserializeReference(ConfigurationNode node) throws SerializationException;
 
 }

@@ -1,7 +1,9 @@
 package dev.flashlabs.cratecrate.component.prize;
 
 import dev.flashlabs.cratecrate.CrateCrate;
+import dev.flashlabs.cratecrate.DisplayItem;
 import dev.flashlabs.cratecrate.component.Type;
+import dev.flashlabs.cratecrate.component.effect.Effect;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Serializers;
 import net.kyori.adventure.text.Component;
@@ -23,32 +25,24 @@ import java.util.Optional;
 
 public final class CommandPrize extends Prize<String> {
 
-    public static final Type<CommandPrize, String> TYPE = new CommandPrizeType();
+    public static final Type<CommandPrize> TYPE = new CommandPrizeType();
 
     private enum Source {
         SERVER, PLAYER
     }
 
-    private final Optional<String> name;
-    private final Optional<List<String>> lore;
-    private final Optional<ItemStackSnapshot> icon;
     private final String command;
-    private final Optional<Source> source;
-    private final Optional<Boolean> online;
+    private final Source source;
+    private final boolean online;
 
     private CommandPrize(
         String id,
-        Optional<String> name,
-        Optional<List<String>> lore,
-        Optional<ItemStackSnapshot> icon,
+        DisplayItem displayItem,
         String command,
-        Optional<Source> source,
-        Optional<Boolean> online
+        Source source,
+        boolean online
     ) {
-        super(id);
-        this.name = name;
-        this.lore = lore;
-        this.icon = icon;
+        super(id, displayItem);
         this.command = command;
         this.source = source;
         this.online = online;
@@ -61,7 +55,7 @@ public final class CommandPrize extends Prize<String> {
      */
     @Override
     public Component name(Optional<String> value) {
-        var base = name.orElseGet(() -> id.startsWith("/") ? id : WordUtils.capitalize(id.replace("-", " ")));
+        var base = displayItem().name().orElseGet(() -> id.startsWith("/") ? id : WordUtils.capitalize(id.replace("-", " ")));
         base = base.replaceAll("\\$\\{value}", value.orElse("${value}"));
         return LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + base);
     }
@@ -74,7 +68,7 @@ public final class CommandPrize extends Prize<String> {
      */
     @Override
     public List<Component> lore(Optional<String> value) {
-        return lore
+        return Optional.of(displayItem().lore()).filter(List::isEmpty)
                 .orElse(id.startsWith("/") ? List.of() : List.of("/" + command)).stream()
 
                 .map(s -> {
@@ -90,7 +84,7 @@ public final class CommandPrize extends Prize<String> {
      */
     @Override
     public ItemStack icon(Optional<String> value) {
-        var base = icon.map(ItemStackSnapshot::asMutable)
+        var base = displayItem().icon().map(ItemStackSnapshot::asMutable)
             .orElseGet(() -> ItemStack.of(ItemTypes.FILLED_MAP, 1));
         if (base.get(Keys.CUSTOM_NAME).isEmpty()) {
             base.offer(Keys.CUSTOM_NAME, name(value));
@@ -105,9 +99,9 @@ public final class CommandPrize extends Prize<String> {
     public boolean give(User user, String value) {
         try (var frame = Sponge.server().causeStackManager().pushCauseFrame()) {
             var command = this.command.replaceAll("\\$\\{value}", value);
-            if (online.orElse(false) || source.map(s -> s == Source.PLAYER).orElse(false)) {
+            if (online || source == Source.PLAYER) {
                 var player = user.player().orElseThrow(() -> new CommandException(Component.text("User must be online.")));
-                frame.pushCause(source.map(s -> s == Source.PLAYER).orElse(false) ? player : Sponge.systemSubject());
+                frame.pushCause(source == Source.PLAYER ? player : Sponge.systemSubject());
                 command = command.replaceAll("\\$\\{player}", player.name());
             } else {
                 frame.pushCause(Sponge.systemSubject());
@@ -122,7 +116,7 @@ public final class CommandPrize extends Prize<String> {
         }
     }
 
-    private static final class CommandPrizeType extends Type<CommandPrize, String> {
+    private static final class CommandPrizeType extends Type<CommandPrize> {
 
         private CommandPrizeType() {
             super("Command", CrateCrate.get().getContainer());
@@ -143,23 +137,26 @@ public final class CommandPrize extends Prize<String> {
          * }</pre>
          */
         @Override
-        public CommandPrize deserializeComponent(ConfigurationNode node) throws SerializationException {
-            var name = Optional.ofNullable(node.node("name").get(String.class));
-            var lore = node.node("lore").isList()
-                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(List::copyOf)
-                : Optional.<List<String>>empty();
-            var icon = node.hasChild("icon")
-                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).asImmutable())
-                : Optional.<ItemStackSnapshot>empty();
-            var command = Optional.ofNullable(node.node("command").getString())
-                .or(() -> Optional.ofNullable(node.node("command", "command").getString()))
-                .map(s -> s.substring(1))
-                .orElse("");
-            var source = Optional.ofNullable(node.node("command", "source").getString())
-                .map(s -> Source.valueOf(s.toUpperCase()));
-            var online = Optional.ofNullable(node.node("command", "online").getString())
-                .map(Boolean::parseBoolean);
-            return new CommandPrize(String.valueOf(node.key()), name, lore, icon, command, source, online);
+        public CommandPrize deserializeComponent(String id, ConfigurationNode node) throws SerializationException {
+            var displayItem = DisplayItem.deserialize(node);
+
+            var commandNode = node.node("command");
+
+            var command = "";
+            var source = Source.SERVER;
+            var online = false;
+
+            if(commandNode.isMap()) {
+                command = Optional.ofNullable(commandNode.node("command").getString()).map(s -> s.substring(1)).orElse("");
+                source = Optional.ofNullable(commandNode.node("source").getString()).map(String::toUpperCase).map(Source::valueOf).orElse(Source.SERVER);
+                online = commandNode.node("online").getBoolean();
+            } else {
+                command = Optional.ofNullable(commandNode.getString()).map(s -> s.substring(1)).orElse("");
+            }
+
+
+
+            return new CommandPrize(id, displayItem, command, source, online);
         }
 
         /**
@@ -176,25 +173,25 @@ public final class CommandPrize extends Prize<String> {
          * }</pre>
          */
         @Override
-        public Tuple<CommandPrize, String> deserializeReference(ConfigurationNode node, List<? extends ConfigurationNode> values) throws SerializationException {
+        public PrizeValueHolder<CommandPrize, ?> deserializeReference(ConfigurationNode node) throws SerializationException {
             CommandPrize prize;
             if (node.isMap()) {
-                prize = deserializeComponent(node);
+                prize = deserializeComponent("CommandPrize@" + node.path(), node);
                 Config.PRIZES.put(prize.id, prize);
             } else {
                 var identifier = Optional.ofNullable(node.getString()).orElse("");
                 if (Config.PRIZES.containsKey(identifier)) {
                     prize = (CommandPrize) Config.PRIZES.get(identifier);
                 } else if (identifier.startsWith("/")) {
-                    prize = new CommandPrize(identifier, Optional.empty(), Optional.empty(), Optional.empty(), identifier.substring(1), Optional.empty(), Optional.empty());
+                    prize = new CommandPrize(identifier, new DisplayItem(), identifier.substring(1), Source.SERVER, false);
                     Config.PRIZES.put(prize.id, prize);
                 } else {
                     throw new AssertionError(identifier);
                 }
             }
             //TODO: Validate reference value counts
-            var value = Optional.ofNullable((!values.isEmpty() ? values.getFirst() : node.node("value")).getString()).orElse("");
-            return Tuple.of(prize, value);
+            var value = node.node("value").getString("");
+            return new PrizeValueHolder<>(prize, value);
         }
 
     }

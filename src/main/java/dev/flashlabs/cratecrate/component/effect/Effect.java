@@ -17,7 +17,7 @@ import java.util.Map;
 
 public abstract class Effect<T> extends Component<T> {
 
-    public static final Map<String, Type<? extends Effect, ?>> TYPES = new HashMap<>();
+    public static final Map<String, Type<? extends Effect>> TYPES = new HashMap<>();
 
     public enum Action {
         IDLE,
@@ -51,7 +51,7 @@ public abstract class Effect<T> extends Component<T> {
 
         public abstract boolean give(ServerLocation location);
 
-        protected static Tuple<Target, Vector3d> deserializeReferenceValue(ConfigurationNode node, List<? extends ConfigurationNode> values) throws SerializationException {
+        protected static Tuple<Target, Vector3d> deserializeReferenceValue(ConfigurationNode node) throws SerializationException {
             Target target = Target.LOCATION;
             Vector3d offset = Vector3d.ZERO;
 
@@ -65,26 +65,6 @@ public abstract class Effect<T> extends Component<T> {
                 double z = offsetNode.node(2).getDouble(0.0);
                 offset = Vector3d.from(x, y, z);
 
-            } else if (values.size() == 1) {
-                // single value = target enum
-                target = values.get(0).get(Target.class);
-
-            } else if (values.size() == 3) {
-                // three doubles = offset
-                offset = Vector3d.from(
-                        values.get(0).getDouble(),
-                        values.get(1).getDouble(),
-                        values.get(2).getDouble()
-                );
-
-            } else if (values.size() == 4) {
-                // enum + three doubles
-                target = values.get(0).get(Target.class);
-                offset = Vector3d.from(
-                        values.get(1).getDouble(),
-                        values.get(2).getDouble(),
-                        values.get(3).getDouble()
-                );
             }
 
             return Tuple.of(target, offset);

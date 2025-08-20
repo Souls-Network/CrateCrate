@@ -2,6 +2,7 @@ package dev.flashlabs.cratecrate.component.effect;
 
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.Type;
+import dev.flashlabs.cratecrate.component.ValueHolder;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Serializers;
 import net.kyori.adventure.text.Component;
@@ -12,7 +13,6 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.util.Ticks;
-import org.spongepowered.api.util.Tuple;
 import org.spongepowered.api.world.server.ServerLocation;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
@@ -23,19 +23,19 @@ import java.util.Optional;
 
 public final class PotionEffect extends Effect<Integer> {
 
-    public static final Type<PotionEffect, Integer> TYPE = new PotionEffectType();
+    public static final Type<PotionEffect> TYPE = new PotionEffectType();
 
     private final org.spongepowered.api.effect.potion.PotionEffectType type;
     private final int amplifier;
-    private final Optional<Boolean> ambient;
-    private final Optional<Boolean> particles;
+    private final boolean ambient;
+    private final boolean particles;
 
     private PotionEffect(
         String id,
         org.spongepowered.api.effect.potion.PotionEffectType type,
         int amplifier,
-        Optional<Boolean> ambient,
-        Optional<Boolean> particles
+        boolean ambient,
+        boolean particles
     ) {
         super(id);
         this.type = type;
@@ -79,64 +79,47 @@ public final class PotionEffect extends Effect<Integer> {
         effects.add(org.spongepowered.api.effect.potion.PotionEffect.builder()
             .potionType(type)
             .amplifier(amplifier)
-            .ambient(ambient.orElse(false))
-            .showParticles(particles.orElse(true))
+            .ambient(ambient)
+            .showParticles(particles)
             .duration(Ticks.of(20L * duration))
             .build());
         return player.offer(Keys.POTION_EFFECTS, effects).isSuccessful();
     }
 
-    private static final class PotionEffectType extends Type<PotionEffect, Integer> {
+    private static final class PotionEffectType extends Type<PotionEffect> {
 
         private PotionEffectType() {
             super("Potion", CrateCrate.get().getContainer());
         }
 
         @Override
-        public PotionEffect deserializeComponent(Node node) throws SerializationException {
-            org.spongepowered.api.effect.potion.PotionEffect base = node.get("potion").getType() == Node.Type.STRING
-                ? node.get("potion", Serializers.POTION_TYPE)
-                : node.get("potion.type", Serializers.POTION_TYPE);
-            Optional<Boolean> ambient = node.get("potion.ambient", Storm.BOOLEAN.optional());
-            Optional<Boolean> particles = node.get("potion.particles", Storm.BOOLEAN.optional());
-            return new PotionEffect(String.valueOf(node.getKey()), base.getType(), base.getAmplifier(), ambient, particles);
+        public PotionEffect deserializeComponent(String id, ConfigurationNode node) throws SerializationException {
+            org.spongepowered.api.effect.potion.PotionEffect base = Serializers.POTION_TYPE.deserialize(node.node("potion"));
+            boolean ambient = node.node("potion.ambient").getBoolean(false);
+            boolean particles = node.node("potion.particles").getBoolean(true);
+            return new PotionEffect(id, base.type(), base.amplifier(), ambient, particles);
         }
 
         @Override
-        public void reserializeComponent(Node node, PotionEffect component) throws SerializationException {
-            throw new UnsupportedOperationException(); //TODO
-        }
-
-        @Override
-        public Tuple<PotionEffect, Integer> deserializeReference(ConfigurationNode node, List<? extends ConfigurationNode> values) throws SerializationException {
+        public ValueHolder<PotionEffect, ?> deserializeReference(ConfigurationNode node) throws SerializationException {
             PotionEffect effect;
             if (node.isMap()) {
-                effect = deserializeComponent(node);
-                effect = new PotionEffect("PotionEffect@" + node.path(), effect.type, effect.amplifier, effect.ambient, effect.particles);
+                effect = deserializeComponent("PotionEffect@" + node.path(), node);
                 Config.EFFECTS.put(effect.id, effect);
             } else {
-                String identifier = node.getget(Storm.STRING);
+                String identifier = node.getString("");
                 if (Config.EFFECTS.containsKey(identifier)) {
                     effect = (PotionEffect) Config.EFFECTS.get(identifier);
                 } else {
-                    org.spongepowered.api.effect.potion.PotionEffect base = node.get(Serializers.POTION_TYPE);
-                    effect = new PotionEffect(identifier, base.getType(), base.getAmplifier(), Optional.empty(), Optional.empty());
+                    org.spongepowered.api.effect.potion.PotionEffect base = Serializers.POTION_TYPE.deserialize(node);
+                    effect = new PotionEffect(identifier, base.type(), base.amplifier(), false, true);
                     Config.EFFECTS.put(effect.id, effect);
                 }
             }
-            if (values.isEmpty() && node.get("duration").getType() == Node.Type.UNDEFINED) {
-                throw new SerializationException(node, "Expected a reference value for the duration.");
-            }
-            int duration = (!values.isEmpty() ? values.get(values.size() - 1) : node.get("duration"))
-                .get(Storm.INTEGER.range(Range.atLeast(1)));
-            return Tuple.of(effect, duration);
-        }
 
-        @Override
-        public void reserializeReference(Node node, Tuple<PotionEffect, Integer> reference) throws SerializationException {
-            throw new UnsupportedOperationException(); //TODO
+            int duration = Math.min(1, node.node("duration").getInt(11));
+            return new EffectHolder<>(effect, duration);
         }
-
     }
 
 }

@@ -30,7 +30,7 @@ public final class CirclePath extends Path {
         for (int i = 0; i < shifts.length; i++) {
             vectors[i] = axis.equals(Vector3d.UNIT_Y)
                 ? Vector3d.from(TrigMath.cos(shifts[i]), 0.0, TrigMath.sin(shifts[i]))
-                : Quaterniond.fromAngleRadAxis(shifts[i], axis).rotate(Vector3d.from(-axis.getZ(), 0.0, axis.getX()).normalize());
+                : Quaterniond.fromAngleRadAxis(shifts[i], axis).rotate(Vector3d.from(-axis.z(), 0.0, axis.x()).normalize());
         }
         return vectors;
     }

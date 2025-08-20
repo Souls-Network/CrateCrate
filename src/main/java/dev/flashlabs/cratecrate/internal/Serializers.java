@@ -1,6 +1,5 @@
 package dev.flashlabs.cratecrate.internal;
 
-import dev.flashlabs.cratecrate.component.effect.PotionEffect;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.ResourceKeyed;
@@ -20,10 +19,10 @@ import org.spongepowered.api.util.Ticks;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 
-import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -31,6 +30,12 @@ public final class Serializers {
     private static final Predicate<String> MINECRAFT_ID = Pattern.compile(
             "^(?:minecraft:)?[a-z0-9_/.-]+$|^(?!minecraft:)[a-z0-9_.-]+:[a-z0-9_/.-]+$"
     ).asPredicate();
+
+    public static <T> T optionalNode(ConfigurationNode node, String name, T base, Function<ConfigurationNode, T>function) {
+        var potential = node.node(name);
+
+        return potential.virtual() ? base : function.apply(potential);
+    }
 
     public interface Serializer<T> {
 
@@ -180,7 +185,7 @@ public final class Serializers {
 
     };
 
-    public static final Serializer<org.spongepowered.api.effect.potion.PotionEffect> POTION_TYPE = new Serializer<org.spongepowered.api.effect.potion.PotionEffect>() {
+    public static final Serializer<org.spongepowered.api.effect.potion.PotionEffect> POTION_TYPE = new Serializer<>() {
 
         @Override
         public org.spongepowered.api.effect.potion.PotionEffect deserialize(ConfigurationNode node) throws SerializationException {

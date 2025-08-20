@@ -1,8 +1,7 @@
 package dev.flashlabs.cratecrate.internal;
 
 import dev.flashlabs.cratecrate.CrateCrate;
-import dev.flashlabs.cratecrate.component.Crate;
-import dev.flashlabs.cratecrate.component.Reward;
+import dev.flashlabs.cratecrate.component.*;
 import dev.flashlabs.cratecrate.component.key.Key;
 import dev.flashlabs.flashlibs.inventory.Element;
 import dev.flashlabs.flashlibs.inventory.Page;
@@ -31,8 +30,8 @@ public final class Utils {
         return Inventory.page(
                 crate.name(Optional.empty()),
                 crate.rewards().stream()
-                        .map(r -> Element.of(r.first().icon(Optional.of(r.second())), a -> a.callback(v -> {
-                            preview(r, Element.of(r.first().icon(Optional.empty()), a2 -> a2.callback(v2 -> {
+                        .map(r -> Element.of(r.icon(), a -> a.callback(v -> {
+                            preview(r, Element.of(r.icon(), a2 -> a2.callback(v2 -> {
                                 v.open(a2.getPlayer());
                             }))).open(a.getPlayer());
                         })))
@@ -41,26 +40,28 @@ public final class Utils {
         );
     }
 
-    public static Page preview(Tuple<? extends Reward, BigDecimal> reward, Element back) {
+    public static Page preview(RewardValueHolder reward, Element back) {
         return Inventory.page(
-                reward.first().name(Optional.of(reward.second())),
-                reward.first().prizes().stream()
-                        .map(p -> Element.of(p.first().icon(Optional.of(p.second()))))
+                reward.name(),
+                reward.prizes().stream()
+                        .map(ValueHolder::icon).map(Element::of)
                         .collect(Collectors.toList()),
                 back
         );
     }
 
-    public static View confirm(Tuple<Crate, ServerLocation> crate) {
-        return Inventory.menu(crate.first().name(Optional.empty()), Map.of(
+    public static View confirm(Tuple<Registration, ServerLocation> tuple) {
+        var crate = tuple.first().crate();
+
+        return Inventory.menu(crate.name(Optional.empty()), Map.of(
                 10, Element.of(Inventory.item(ItemTypes.SLIME_BALL.get(), Component.text("Confirm")), a -> a.callback(v -> {
                     a.getPlayer().closeInventory();
-                    if (checkKeys(a.getPlayer(), crate.first()) && takeKeys(a.getPlayer(), crate.first())) {
-                        crate.first().open(a.getPlayer(), crate.second());
+                    if (checkKeys(a.getPlayer(), crate) && takeKeys(a.getPlayer(), crate)) {
+                        crate.open(a.getPlayer(), tuple.second());
                     }
                 })),
-                13, Element.of(crate.first().icon(Optional.empty()), a -> a.callback(v -> {
-                    preview(crate.first(), Element.of(crate.first().icon(Optional.empty()), a2 -> a2.callback(v2 -> {
+                13, Element.of(crate.icon(Optional.empty()), a -> a.callback(v -> {
+                    preview(crate, Element.of(crate.icon(Optional.empty()), a2 -> a2.callback(v2 -> {
                         v.open(a2.getPlayer());
                     }))).open(a.getPlayer());
                 })),
@@ -71,15 +72,15 @@ public final class Utils {
     }
 
     public static boolean checkKeys(ServerPlayer player, Crate crate) {
-        List<Tuple<? extends Key, Integer>> missing = crate.keys().stream()
-                .filter(k -> !k.first().check(player.user(), k.second()))
+        List<KeyHolder<? extends Key>> missing = crate.keys().stream()
+                .filter(k -> !k.check(player.user()))
                 .toList();
         if (!missing.isEmpty()) {
             CrateCrate.get().sendMessage(player, "interact.keys.missing",
                     "keys", Component.join(
                                     JoinConfiguration.separator(Component.text(", ")),
                                     missing.stream()
-                                .map(k -> k.first().name(Optional.of(k.second())))
+                                .map(ValueHolder::name)
                                 .collect(Collectors.toList())));
         }
 
@@ -87,23 +88,23 @@ public final class Utils {
     }
 
     public static boolean takeKeys(ServerPlayer player, Crate crate) {
-        List<Tuple<? extends Key, Integer>> taken = new ArrayList<>();
-        for (Tuple<? extends Key, Integer> key : crate.keys()) {
-            if (!key.first().take(player.user(), key.second())) {
+        List<KeyHolder<? extends Key>> taken = new ArrayList<>();
+        for (KeyHolder<? extends Key> key : crate.keys()) {
+            if (!key.take(player.user())) {
                 if (taken.isEmpty()) {
                     CrateCrate.get().sendMessage(player, "interact.keys.take.failure",
-                            "key", key.first().name(Optional.of(key.second()))
+                            "key", key.name()
                     );
                 } else {
                     CrateCrate.get().getContainer().logger().error("Incomplete transaction for player " + player.name() + ": " + taken.stream()
-                            .map(k -> k.first().id() + " (x" + k.second() + ")")
+                            .map(k -> k.id() + " (x" + k.value() + ")")
                             .collect(Collectors.joining(", ")));
                     CrateCrate.get().sendMessage(player, "interact.keys.take.incomplete",
-                            "key", key.first().name(Optional.of(key.second())),
+                            "key", key.name(),
                             "keys", Component.join(
                                 JoinConfiguration.separator(Component.text(", ")),
                                 taken.stream()
-                                        .map(k -> k.first().name(Optional.of(k.second())))
+                                        .map(ValueHolder::name)
                                         .toList()));
                 }
                 return false;

@@ -1,9 +1,12 @@
 package dev.flashlabs.cratecrate.component.key;
 
 import dev.flashlabs.cratecrate.CrateCrate;
+import dev.flashlabs.cratecrate.DisplayItem;
+import dev.flashlabs.cratecrate.component.KeyHolder;
 import dev.flashlabs.cratecrate.component.Type;
+import dev.flashlabs.cratecrate.component.ValueHolder;
+import dev.flashlabs.cratecrate.component.effect.EffectHolder;
 import dev.flashlabs.cratecrate.internal.Config;
-import dev.flashlabs.cratecrate.internal.Serializers;
 import dev.flashlabs.cratecrate.internal.Storage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -23,22 +26,15 @@ import java.util.Optional;
 
 public final class StandardKey extends Key {
 
-    public static final Type<StandardKey, Integer> TYPE = new StandardKeyType();
-
-    private final Optional<String> name;
-    private final Optional<List<String>> lore;
-    private final Optional<ItemStackSnapshot> icon;
+    public static final Type<StandardKey> TYPE = new StandardKeyType();
+    private final DisplayItem displayItem;
 
     private StandardKey(
         String id,
-        Optional<String> name,
-        Optional<List<String>> lore,
-        Optional<ItemStackSnapshot> icon
+        DisplayItem displayItem
     ) {
         super(id);
-        this.name = name;
-        this.lore = lore;
-        this.icon = icon;
+        this.displayItem = displayItem;
     }
 
     /**
@@ -47,7 +43,7 @@ public final class StandardKey extends Key {
      */
     @Override
     public net.kyori.adventure.text.Component name(Optional<Integer> quantity) {
-        return LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + name.orElse(WordUtils.capitalize(id.replace("-", " "))))
+        return LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + displayItem.name().orElse(WordUtils.capitalize(id.replace("-", " "))))
             .append(Component.text(quantity.map(q -> " (x" + q + ")").orElse("")));
     }
 
@@ -57,7 +53,7 @@ public final class StandardKey extends Key {
      */
     @Override
     public List<net.kyori.adventure.text.Component> lore(Optional<Integer> unused) {
-        return lore.orElseGet(List::of).stream()
+        return displayItem.lore().stream()
             .map(s -> LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + s).asComponent())
             .toList();
     }
@@ -71,7 +67,7 @@ public final class StandardKey extends Key {
      */
     @Override
     public ItemStack icon(Optional<Integer> quantity) {
-        var base = icon.map(ItemStackSnapshot::asMutable)
+        var base = displayItem.icon().map(ItemStackSnapshot::asMutable)
             .orElseGet(() -> ItemStack.of(ItemTypes.TRIPWIRE_HOOK, 1));
         if (base.get(Keys.CUSTOM_NAME).isEmpty()) {
             base.offer(Keys.CUSTOM_NAME, name(quantity.filter(q -> q > base.maxStackQuantity())));
@@ -118,7 +114,7 @@ public final class StandardKey extends Key {
         }
     }
 
-    private static final class StandardKeyType extends Type<StandardKey, Integer> {
+    private static final class StandardKeyType extends Type<StandardKey> {
 
         private StandardKeyType() {
             super("Standard", CrateCrate.get().getContainer());
@@ -135,15 +131,10 @@ public final class StandardKey extends Key {
          * }</pre>
          */
         @Override
-        public StandardKey deserializeComponent(ConfigurationNode node) throws SerializationException {
-            var name = Optional.ofNullable(node.node("name").get(String.class));
-            var lore = node.node("lore").isList()
-                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(List::copyOf)
-                : Optional.<List<String>>empty();
-            var icon = node.hasChild("icon")
-                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).asImmutable())
-                : Optional.<ItemStackSnapshot>empty();
-            return new StandardKey(String.valueOf(node.key()), name, lore, icon);
+        public StandardKey deserializeComponent(String id, ConfigurationNode node) throws SerializationException {
+            var displayItem = DisplayItem.deserialize(node);
+
+            return new StandardKey(id, displayItem);
         }
 
         /**
@@ -160,23 +151,22 @@ public final class StandardKey extends Key {
          * }</pre>
          */
         @Override
-        public Tuple<StandardKey, Integer> deserializeReference(ConfigurationNode node, List<? extends ConfigurationNode> values) throws SerializationException {
+        public ValueHolder<StandardKey, ?> deserializeReference(ConfigurationNode node) throws SerializationException {
             StandardKey key;
             if (node.isMap()) {
-                key = deserializeComponent(node);
-                key = new StandardKey("StandardKey@" + node.path(), key.name, key.lore, key.icon);
+                key = deserializeComponent("StandardKey@" + node.path(), node);
                 Config.KEYS.put(key.id, key);
             } else {
                 var identifier = Optional.ofNullable(node.getString()).orElse("");
                 if (Config.KEYS.containsKey(identifier)) {
                     key = (StandardKey) Config.KEYS.get(identifier);
                 } else {
-                    key = new StandardKey(identifier, Optional.empty(), Optional.empty(), Optional.empty());
+                    key = new StandardKey(identifier, new DisplayItem());
                     Config.KEYS.put(key.id, key);
                 }
             }
-            int quantity = (!values.isEmpty() ? values.get(0) : node.node("quantity")).getInt(1);
-            return Tuple.of(key, quantity);
+            int quantity = node.node("quantity").getInt(1);
+            return new KeyHolder<>(key, quantity);
         }
 
     }

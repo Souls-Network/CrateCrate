@@ -2,6 +2,7 @@ package dev.flashlabs.cratecrate.component.effect;
 
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.Type;
+import dev.flashlabs.cratecrate.component.ValueHolder;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Serializers;
 import net.kyori.adventure.text.Component;
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
 
 public final class FireworkEffect extends Effect.Locatable {
 
-    public static final Type<FireworkEffect, Tuple<Target, Vector3d>> TYPE = new FireworkEffectType();
+    public static final Type<FireworkEffect> TYPE = new FireworkEffectType();
 
     private static final Random RANDOM = new Random();
 
@@ -103,14 +104,14 @@ public final class FireworkEffect extends Effect.Locatable {
         return location.world().spawnEntity(firework);
     }
 
-    private static final class FireworkEffectType extends Type<FireworkEffect, Tuple<Target, Vector3d>> {
+    private static final class FireworkEffectType extends Type<FireworkEffect> {
 
         private FireworkEffectType() {
             super("Firework", CrateCrate.get().getContainer());
         }
 
         @Override
-        public FireworkEffect deserializeComponent(ConfigurationNode node) throws SerializationException {
+        public FireworkEffect deserializeComponent(String id, ConfigurationNode node) throws SerializationException {
             Optional<FireworkShape> shape = Serializers.FIREWORK_SHAPE.deserializeOptional(node.node("firework"));
             Optional<List<Color>> colors = Optional.ofNullable(node.node("firework.colors").getList(Integer.class)).map(l -> l.stream().map(Color::ofRgb).collect(Collectors.toList()));
             Optional<List<Color>> fades = Optional.ofNullable(node.node("firework.fades").getList(Integer.class)).map(l -> l.stream().map(Color::ofRgb).collect(Collectors.toList()));
@@ -121,11 +122,10 @@ public final class FireworkEffect extends Effect.Locatable {
         }
 
         @Override
-        public Tuple<FireworkEffect, Tuple<Target, Vector3d>> deserializeReference(ConfigurationNode node, List<? extends ConfigurationNode> values) throws SerializationException {
+        public EffectHolder<FireworkEffect, ?> deserializeReference(ConfigurationNode node) throws SerializationException {
             FireworkEffect effect;
             if (node.isMap()) {
-                effect = deserializeComponent(node);
-                effect = new FireworkEffect("FireworkEffect@" + node.path(), effect.shape, effect.colors, effect.fades, effect.trail, effect.flicker, effect.duration);
+                effect = deserializeComponent("FireworkEffect@" + node.path(), node);
                 Config.EFFECTS.put(effect.id, effect);
             } else {
                 String identifier = node.getString();
@@ -138,7 +138,8 @@ public final class FireworkEffect extends Effect.Locatable {
                     Config.EFFECTS.put(effect.id, effect);
                 }
             }
-            return Tuple.of(effect, deserializeReferenceValue(node, values));
+
+            return new EffectHolder<>(effect, deserializeReferenceValue(node));
         }
 
     }

@@ -1,7 +1,9 @@
 package dev.flashlabs.cratecrate.component.prize;
 
 import dev.flashlabs.cratecrate.CrateCrate;
+import dev.flashlabs.cratecrate.DisplayItem;
 import dev.flashlabs.cratecrate.component.Type;
+import dev.flashlabs.cratecrate.component.ValueHolder;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Serializers;
 import net.kyori.adventure.text.Component;
@@ -27,24 +29,16 @@ import java.util.Optional;
 
 public final class MoneyPrize extends Prize<BigDecimal> {
 
-    public static final Type<MoneyPrize, BigDecimal> TYPE = new MoneyPrizeType();
+    public static final Type<MoneyPrize> TYPE = new MoneyPrizeType();
 
-    private final Optional<String> name;
-    private final Optional<List<String>> lore;
-    private final Optional<ItemStackSnapshot> icon;
     private final Optional<Currency> currency;
 
     private MoneyPrize(
         String id,
-        Optional<String> name,
-        Optional<List<String>> lore,
-        Optional<ItemStackSnapshot> icon,
+        DisplayItem displayItem,
         Optional<Currency> currency
     ) {
-        super(id);
-        this.name = name;
-        this.lore = lore;
-        this.icon = icon;
+        super(id, displayItem);
         this.currency = currency;
     }
 
@@ -54,7 +48,7 @@ public final class MoneyPrize extends Prize<BigDecimal> {
      */
     @Override
     public Component name(Optional<BigDecimal> amount) {
-        return name.map(s -> {
+        return displayItem().name().map(s -> {
             s = s.replaceAll("\\$\\{amount}", amount.map(String::valueOf).orElse("${amount}"));
             return LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + s).asComponent();
         }).orElseGet(() -> {
@@ -72,7 +66,7 @@ public final class MoneyPrize extends Prize<BigDecimal> {
      */
     @Override
     public List<Component> lore(Optional<BigDecimal> amount) {
-        return lore.orElseGet(List::of).stream().map(s -> {
+        return displayItem().lore().stream().map(s -> {
             s = s.replaceAll("\\$\\{amount}", amount.map(String::valueOf).orElse("${amount}"));
             return LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + s).asComponent();
         }).toList();
@@ -85,7 +79,7 @@ public final class MoneyPrize extends Prize<BigDecimal> {
      */
     @Override
     public ItemStack icon(Optional<BigDecimal> value) {
-        var base = icon.map(ItemStackSnapshot::asMutable)
+        var base = displayItem().icon().map(ItemStackSnapshot::asMutable)
             .orElseGet(() -> ItemStack.of(ItemTypes.SUNFLOWER, 1));
         if (base.get(Keys.CUSTOM_NAME).isEmpty()) {
             base.offer(Keys.CUSTOM_NAME, name(value));
@@ -108,7 +102,7 @@ public final class MoneyPrize extends Prize<BigDecimal> {
         }
     }
 
-    private static final class MoneyPrizeType extends Type<MoneyPrize, BigDecimal> {
+    private static final class MoneyPrizeType extends Type<MoneyPrize> {
 
         private MoneyPrizeType() {
             super("Money", CrateCrate.get().getContainer());
@@ -127,18 +121,11 @@ public final class MoneyPrize extends Prize<BigDecimal> {
          * }</pre>
          */
         @Override
-        public MoneyPrize deserializeComponent(ConfigurationNode node) throws SerializationException {
-            var name = Optional.ofNullable(node.node("name").get(String.class));
-            var lore = node.node("lore").isList()
-                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(List::copyOf)
-                : Optional.<List<String>>empty();
-            var icon = node.hasChild("icon")
-                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).asImmutable())
-                : Optional.<ItemStackSnapshot>empty();
+        public MoneyPrize deserializeComponent(String id, ConfigurationNode node) throws SerializationException {
             var currency = node.hasChild("money", "currency")
                 ? Optional.of(Serializers.CURRENCY.deserialize(node.node("money", "currency")))
                 : Optional.<Currency>empty();
-            return new MoneyPrize(String.valueOf(node.key()), name, lore, icon, currency);
+            return new MoneyPrize(id, DisplayItem.deserialize(node), currency);
         }
 
         /**
@@ -155,31 +142,30 @@ public final class MoneyPrize extends Prize<BigDecimal> {
          * }</pre>
          */
         @Override
-        public Tuple<MoneyPrize, BigDecimal> deserializeReference(ConfigurationNode node, List<? extends ConfigurationNode> values) throws SerializationException {
+        public ValueHolder<MoneyPrize, BigDecimal> deserializeReference(ConfigurationNode node) throws SerializationException {
             MoneyPrize prize;
             if (node.isMap()) {
-                prize = deserializeComponent(node);
-                prize = new MoneyPrize("MoneyPrize@" + node.path(), prize.name, prize.lore, prize.icon, prize.currency);
+                prize = deserializeComponent("MoneyPrize@" + node.path(), node);
                 Config.PRIZES.put(prize.id, prize);
             } else {
-                var identifier = Optional.ofNullable(node.getString()).orElse("");
+                var identifier = node.getString("");
                 if (Config.PRIZES.containsKey(identifier)) {
                     prize = (MoneyPrize) Config.PRIZES.get(identifier);
                 } else if (identifier.matches("\\$[0-9]+(\\.[0-9]+)?")) {
-                    prize = (MoneyPrize) Config.PRIZES.computeIfAbsent("$", k -> new MoneyPrize(k, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
-                    return Tuple.of(prize, new BigDecimal(identifier.substring(1)));
+                    prize = (MoneyPrize) Config.PRIZES.computeIfAbsent("$", k -> new MoneyPrize(k, new DisplayItem(), Optional.empty()));
+                    return new PrizeValueHolder<>(prize, new BigDecimal(identifier.substring(1)));
                 } else if (identifier.startsWith("$")) {
                     //TODO: Currency registry is empty and not accessible via EconomyService
                     var currency = RegistryTypes.CURRENCY.get().findValue(ResourceKey.resolve(identifier.substring(1))).get();
-                    prize = new MoneyPrize(identifier, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(currency));
+                    prize = new MoneyPrize(identifier, new DisplayItem(), Optional.of(currency));
                     Config.PRIZES.put(prize.id, prize);
                 } else {
                     throw new AssertionError(identifier);
                 }
             }
             //TODO: Validate reference value counts
-            var amount = new BigDecimal((!values.isEmpty() ? values.get(0) : node.node("amount")).getString("0"));
-            return Tuple.of(prize, amount);
+            var amount = new BigDecimal(node.node("amount").getString("0"));
+            return new PrizeValueHolder<>(prize, amount);
         }
 
     }

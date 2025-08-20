@@ -4,6 +4,7 @@ import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.command.CommandUtils;
 import dev.flashlabs.cratecrate.component.Crate;
 import dev.flashlabs.cratecrate.component.Reward;
+import dev.flashlabs.cratecrate.component.RewardValueHolder;
 import dev.flashlabs.cratecrate.internal.Config;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
@@ -45,7 +46,7 @@ public final class Give {
         var crate = context.requireOne(Parameter.key("crate", Crate.class));
         var reward = context.requireOne(Parameter.key("reward", Reward.class));
         var position = context.requireOne(Parameter.key("position", Vector3d.class));
-        if (crate.give(player, Tuple.of(reward, BigDecimal.ZERO), player.serverLocation().withPosition(position))) {
+        if (crate.give(player, new RewardValueHolder(reward, BigDecimal.ZERO), player.serverLocation().withPosition(position))) {
             CrateCrate.get().sendMessage((Audience & LocaleSource) context.cause().audience(), "command.crate.give.success",
                     "player", player.name(),
                     "crate", crate.id(),

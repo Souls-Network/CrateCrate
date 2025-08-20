@@ -1,7 +1,9 @@
 package dev.flashlabs.cratecrate.component.prize;
 
 import dev.flashlabs.cratecrate.CrateCrate;
+import dev.flashlabs.cratecrate.DisplayItem;
 import dev.flashlabs.cratecrate.component.Type;
+import dev.flashlabs.cratecrate.component.ValueHolder;
 import dev.flashlabs.cratecrate.internal.Config;
 import dev.flashlabs.cratecrate.internal.Serializers;
 import net.kyori.adventure.text.Component;
@@ -22,24 +24,16 @@ import java.util.Optional;
 
 public final class ItemPrize extends Prize<Integer> {
 
-    public static final Type<ItemPrize, Integer> TYPE = new ItemPrizeType();
+    public static final Type<ItemPrize> TYPE = new ItemPrizeType();
 
-    private final Optional<String> name;
-    private final Optional<List<String>> lore;
-    private final Optional<ItemStackSnapshot> icon;
     private final ItemStackSnapshot item;
 
     private ItemPrize(
         String id,
-        Optional<String> name,
-        Optional<List<String>> lore,
-        Optional<ItemStackSnapshot> icon,
+        DisplayItem displayItem,
         ItemStackSnapshot item
     ) {
-        super(id);
-        this.name = name;
-        this.lore = lore;
-        this.icon = icon;
+        super(id, displayItem);
         this.item = item;
     }
 
@@ -51,7 +45,7 @@ public final class ItemPrize extends Prize<Integer> {
      */
     @Override
     public net.kyori.adventure.text.Component name(Optional<Integer> quantity) {
-        return LegacyComponentSerializer.legacyAmpersand().deserialize("8f" + name.orElse(id))
+        return LegacyComponentSerializer.legacyAmpersand().deserialize("8f" + displayItem().name().orElse(id))
             .append(Component.text(quantity.map(q -> " (x" + q + ")").orElse("")));
     }
 
@@ -61,7 +55,7 @@ public final class ItemPrize extends Prize<Integer> {
      */
     @Override
     public List<net.kyori.adventure.text.Component> lore(Optional<Integer> unused) {
-        return lore.orElseGet(List::of).stream()
+        return displayItem().lore().stream()
             .map(s -> LegacyComponentSerializer.legacyAmpersand().deserialize("&f" + s).asComponent())
             .toList();
     }
@@ -75,7 +69,7 @@ public final class ItemPrize extends Prize<Integer> {
      */
     @Override
     public ItemStack icon(Optional<Integer> quantity) {
-        var base = icon.orElse(item).asMutable();
+        var base = displayItem().icon().orElse(item).asMutable();
         if (base.get(Keys.CUSTOM_NAME).isEmpty()) {
             base.offer(Keys.CUSTOM_NAME, name(quantity.filter(q -> q > base.maxStackQuantity())));
         }
@@ -100,7 +94,7 @@ public final class ItemPrize extends Prize<Integer> {
         }
     }
 
-    private static final class ItemPrizeType extends Type<ItemPrize, Integer> {
+    private static final class ItemPrizeType extends Type<ItemPrize> {
 
         private ItemPrizeType() {
             super("Item", CrateCrate.get().getContainer());
@@ -118,16 +112,10 @@ public final class ItemPrize extends Prize<Integer> {
          * }</pre>
          */
         @Override
-        public ItemPrize deserializeComponent(ConfigurationNode node) throws SerializationException {
-            var name = Optional.ofNullable(node.node("name").get(String.class));
-            var lore = node.node("lore").isList()
-                ? Optional.ofNullable(node.node("lore").getList(String.class)).map(List::copyOf)
-                : Optional.<List<String>>empty();
-            var icon = node.hasChild("icon")
-                ? Optional.of(Serializers.ITEM_STACK.deserialize(node.node("icon")).asImmutable())
-                : Optional.<ItemStackSnapshot>empty();
+        public ItemPrize deserializeComponent(String id, ConfigurationNode node) throws SerializationException {
+            var displayItem = DisplayItem.deserialize(node);
             var item = Serializers.ITEM_STACK.deserialize(node.node("item")).asImmutable();
-            return new ItemPrize(String.valueOf(node.key()), name, lore, icon, item);
+            return new ItemPrize(id, displayItem, item);
         }
 
         /**
@@ -144,11 +132,10 @@ public final class ItemPrize extends Prize<Integer> {
          * }</pre>
          */
         @Override
-        public Tuple<ItemPrize, Integer> deserializeReference(ConfigurationNode node, List<? extends ConfigurationNode> values) throws SerializationException {
+        public ValueHolder<ItemPrize, ?> deserializeReference(ConfigurationNode node) throws SerializationException {
             ItemPrize prize;
             if (node.isMap()) {
-                prize = deserializeComponent(node);
-                prize = new ItemPrize("ItemPrize@" + node.path(), prize.name, prize.lore, prize.icon, prize.item);
+                prize = deserializeComponent("ItemPrize@" + node.path(), node);
                 Config.PRIZES.put(prize.id, prize);
             } else {
                 var identifier = Optional.ofNullable(node.getString()).orElse("");
@@ -157,13 +144,13 @@ public final class ItemPrize extends Prize<Integer> {
                 } else {
                     var item = ItemStack.of(RegistryTypes.ITEM_TYPE.get().findValue(ResourceKey.resolve(identifier))
                         .orElseThrow(AssertionError::new)).asImmutable();
-                    prize = new ItemPrize(identifier, Optional.empty(), Optional.empty(), Optional.empty(), item);
+                    prize = new ItemPrize(identifier, new DisplayItem(), item);
                     Config.PRIZES.put(prize.id, prize);
                 }
             }
-            //TODO: Validate reference value counts
-            var quantity = (!values.isEmpty() ? values.get(0) : node.node("quantity")).getInt(1);
-            return Tuple.of(prize, quantity);
+
+            var quantity = node.node("quantity").getInt(1);
+            return new PrizeValueHolder<>(prize, quantity);
         }
 
     }

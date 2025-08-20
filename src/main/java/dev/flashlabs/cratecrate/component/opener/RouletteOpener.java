@@ -3,6 +3,7 @@ package dev.flashlabs.cratecrate.component.opener;
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.Crate;
 import dev.flashlabs.cratecrate.component.Reward;
+import dev.flashlabs.cratecrate.component.RewardValueHolder;
 import dev.flashlabs.cratecrate.internal.Inventory;
 import dev.flashlabs.cratecrate.internal.Utils;
 import dev.flashlabs.flashlibs.inventory.Element;
@@ -64,11 +65,11 @@ public final class RouletteOpener extends Opener {
                 private int frame = 0;
                 private final int selection = RANDOM.nextInt(9);
                 private final List<Element> panes = new ArrayList<>(PANES);
-                private final List<Tuple<? extends Reward, BigDecimal>> rewards = IntStream.range(0, 9)
+                private final List<RewardValueHolder> rewards = IntStream.range(0, 9)
                     .mapToObj(i -> crate.roll(player))
-                    .collect(Collectors.toList());
+                    .toList();
                 private final List<Element> icons = rewards.stream()
-                    .map(r -> Element.of(r.first().icon(Optional.of(r.second())), a -> a.callback(v -> {
+                    .map(r -> Element.of(r.icon(), a -> a.callback(v -> {
                         if (received.get()) {
                             Utils.preview(r, Element.of(crate.icon(Optional.empty()), a2 -> a2.callback(v2 -> {
                                 v.open(a2.getPlayer());
