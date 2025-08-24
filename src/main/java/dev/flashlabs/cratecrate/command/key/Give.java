@@ -14,6 +14,7 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.command.parameter.Parameter;
+import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.util.locale.LocaleSource;
 
 import java.util.Locale;
@@ -53,7 +54,7 @@ public final class Give {
 
         if (key.give(user, quantity)) {
             CrateCrate.get().sendMessage((Audience & LocaleSource) context.cause().audience(), "command.key.give.success",
-                    "user", user.name(),
+                    "user", user.get(Keys.DISPLAY_NAME).orElseGet(() -> Component.text(user.name())),
                     "key", key.id(),
                     "quantity", quantity,
                     "balance", key.quantity(user).orElse(0)

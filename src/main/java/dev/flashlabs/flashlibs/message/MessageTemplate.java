@@ -120,16 +120,43 @@ public final class MessageTemplate {
      *     invalid or an argument is missing a value.
      */
     public TextComponent get(Object... args) {
-        var map = new HashMap<>();
+
+        var map = new HashMap<String, ComponentLike>();
         for (int i = 0; i < args.length; i += 2) {
-            if (!(args[i] instanceof String)) {
+
+
+            if (args[i] instanceof String key) {
+                ComponentLike value;
+
+                if (i + 1 == args.length) {
+                    throw new IllegalArgumentException("Argument " + args[i] + " is missing a value at index " + i + ".");
+                } else {
+                    var raw = args[i + 1];
+                    if (raw instanceof ComponentLike componentLike) {
+                        value = componentLike;
+                    } else if(raw instanceof String content) {
+                        value = Component.text(content);
+                    } else if(raw instanceof String content) {
+                        value = Component.text(content);
+                    } else if(raw instanceof Boolean content) {
+                        value = Component.text(content);
+                    } else if(raw instanceof Integer content) {
+                        value = Component.text(content);
+                    } else if(raw instanceof Long content) {
+                        value = Component.text(content);
+                    } else if(raw instanceof Float content) {
+                        value = Component.text(content);
+                    } else if(raw instanceof Double content) {
+                        value = Component.text(content);
+                    } else {
+                        throw new IllegalArgumentException("Invalid argument value " + args[i + 1].getClass().getName() + " for argument " + args[i] + ".");
+                    }
+
+                    map.put(key, value);
+                }
+            } else {
                 throw new IllegalArgumentException("Invalid argument key " + args[i].getClass().getName() + " at index " + i + ".");
-            } else if (i + 1 == args.length) {
-                throw new IllegalArgumentException("Argument " + args[i] + " is missing a value at index " + i + ".");
-            } else if (!(args[i + 1] instanceof ComponentLike)) {
-                throw new IllegalArgumentException("Invalid argument value " + args[i + 1].getClass().getName() + " for argument " + args[i] + ".");
             }
-            map.put(args[i], args[i + 1]);
         }
         return get(map);
     }

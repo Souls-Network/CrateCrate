@@ -18,7 +18,7 @@ public final class Layout {
 
     private Layout(Builder builder) {
         dimension = new Vector2i(builder.columns, builder.rows);
-        elements = Map.copyOf(builder.elements);
+        elements = new HashMap<>(builder.elements);
     }
 
     public Vector2i getDimension() {

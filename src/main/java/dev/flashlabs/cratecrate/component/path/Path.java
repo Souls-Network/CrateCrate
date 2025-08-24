@@ -71,7 +71,7 @@ public abstract class Path {
     public abstract Vector3d[] positions(double radians);
 
     public static Path deserialize(ConfigurationNode node) {
-        var type = Optional.ofNullable(node.isMap() ? node.getString() : node.node("type").getString()).map(String::toUpperCase).map(Type::valueOf).orElseThrow(AssertionError::new);
+        var type = Optional.ofNullable(node.isMap() ? node.node("type").getString() : node.getString()).map(String::toUpperCase).map(Type::valueOf).orElseThrow(AssertionError::new);
 
         return switch (type) {
             case CIRCLE -> CirclePath.deserialize(node);

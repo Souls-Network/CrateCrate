@@ -183,7 +183,7 @@ public final class CommandPrize extends Prize<String> {
                 if (Config.PRIZES.containsKey(identifier)) {
                     prize = (CommandPrize) Config.PRIZES.get(identifier);
                 } else if (identifier.startsWith("/")) {
-                    prize = new CommandPrize(identifier, new DisplayItem(), identifier.substring(1), Source.SERVER, false);
+                    prize = new CommandPrize("CommandPrize@" + node.path(), new DisplayItem(), identifier.substring(1), Source.SERVER, false);
                     Config.PRIZES.put(prize.id, prize);
                 } else {
                     throw new AssertionError(identifier);
@@ -194,6 +194,10 @@ public final class CommandPrize extends Prize<String> {
             return new PrizeValueHolder<>(prize, value);
         }
 
+        @Override
+        public boolean matches(ConfigurationNode node) {
+            return node.getString("").startsWith("/");
+        }
     }
 
 }

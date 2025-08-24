@@ -108,6 +108,7 @@ public final class ParticleEffect extends Effect.Locatable {
                         )));
                     }
                     org.spongepowered.api.effect.particle.ParticleEffect effect = builder.build();
+
                     for (Vector3d vector : path.positions(radians)) {
                         location.world().spawnParticles(effect, location.position().add(vector.mul(path.scale())));
                     }

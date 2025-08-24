@@ -15,6 +15,7 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.command.parameter.Parameter;
+import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.util.locale.LocaleSource;
 import org.spongepowered.api.world.server.ServerLocation;
 
@@ -31,13 +32,13 @@ public final class Set {
 
     public static Command.Parameterized COMMAND = Command.builder()
         .permission("cratecrate.command.location.set.base")
-        .addParameter(Parameter.location().key("location").build())
         .addParameter(Parameter.choices(Crate.class, Config.CRATES::get, Config.CRATES::keySet).key("crate").build())
-        .executor(Set::execute)
+            .addParameter(Parameter.location().optional().key("location").build())
+            .executor(Set::execute)
         .build();
 
     private static CommandResult execute(CommandContext context) throws CommandException {
-        var location = context.requireOne(Parameter.key("location", ServerLocation.class));
+        var location = context.one(Parameter.key("location", ServerLocation.class)).orElse(((ServerPlayer) context.cause().audience()).serverLocation());
         var crate = context.requireOne(Parameter.key("crate", TypeToken.get(Crate.class)));
         location = location.withBlockPosition(location.blockPosition());
         if (Storage.LOCATIONS.containsKey(location)) {

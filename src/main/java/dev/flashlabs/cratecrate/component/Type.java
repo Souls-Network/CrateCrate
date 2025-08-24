@@ -13,7 +13,7 @@ public abstract class Type<T extends Component<?>> {
     private final PluginContainer container;
 
     protected Type(String name, PluginContainer container) {
-        this.name = name;
+        this.name = name.toLowerCase();
         this.container = container;
     }
 
@@ -33,4 +33,7 @@ public abstract class Type<T extends Component<?>> {
 
     public abstract ValueHolder<T, ?> deserializeReference(ConfigurationNode node) throws SerializationException;
 
+    public boolean matches(ConfigurationNode node) {
+        return false;
+    }
 }

@@ -52,7 +52,7 @@ public final class CrateCrate extends PluginInstance {
         Prize.TYPES.put(MoneyPrize.TYPE.name(), MoneyPrize.TYPE);
         Key.TYPES.put(StandardKey.TYPE.name(), StandardKey.TYPE);
         Effect.TYPES.put(FireworkEffect.TYPE.name(), FireworkEffect.TYPE);
-        Effect.TYPES.put(ParticleEffect.TYPE.name(), FireworkEffect.TYPE);
+        Effect.TYPES.put(ParticleEffect.TYPE.name(), ParticleEffect.TYPE);
         Effect.TYPES.put(PotionEffect.TYPE.name(), PotionEffect.TYPE);
         Effect.TYPES.put(SoundEffect.TYPE.name(), SoundEffect.TYPE);
         Sponge.eventManager().registerListeners(container, new Listeners());

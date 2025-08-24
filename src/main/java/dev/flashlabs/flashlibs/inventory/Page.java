@@ -42,7 +42,7 @@ public final class Page {
     private Page(Builder builder, PluginContainer container) {
         archetype = builder.archetype;
         title = builder.title;
-        icons = Map.copyOf(builder.icons);
+        icons = new HashMap<>(builder.icons);
         layout = builder.layout;
         this.container = container;
         define(new ArrayList<>());

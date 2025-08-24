@@ -2,6 +2,7 @@ package dev.flashlabs.cratecrate.internal;
 
 import dev.flashlabs.cratecrate.component.Crate;
 import dev.flashlabs.cratecrate.component.effect.Effect;
+import dev.flashlabs.cratecrate.component.effect.EffectHolder;
 import dev.flashlabs.cratecrate.component.effect.ParticleEffect;
 import org.spongepowered.api.scheduler.ScheduledTask;
 import org.spongepowered.api.scheduler.Task;
@@ -33,10 +34,14 @@ public final class Registration {
 
     public void startEffects() {
         stopEffects();
-        crate.effects().getOrDefault(Effect.Action.IDLE, List.of()).stream()
-            .filter(e -> e.component() instanceof ParticleEffect particleEffect) //TODO
-            .forEach(e -> effects.add(((ParticleEffect) e.component)
-                .start(location.add(0.5, 0.5, 0.5).add(((Tuple<Effect.Locatable.Target, Vector3d>) e.value()).second()))));
+        //TODO
+        for (EffectHolder<?, ?> e : crate.effects().getOrDefault(Effect.Action.IDLE, List.of())) {
+            if (e.component() instanceof ParticleEffect particleEffect) {
+                System.out.println("Say GERMINO!");
+
+                effects.add(particleEffect.start(location.add(0.5, 0.5, 0.5).add(((Tuple<Effect.Locatable.Target, Vector3d>) e.value()).second())));
+            }
+        }
     }
 
     public void stopEffects() {

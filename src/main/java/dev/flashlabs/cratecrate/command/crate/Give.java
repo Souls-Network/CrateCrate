@@ -45,13 +45,13 @@ public final class Give {
         var player = context.requireOne(Parameter.key("player", ServerPlayer.class));
         var crate = context.requireOne(Parameter.key("crate", Crate.class));
         var reward = context.requireOne(Parameter.key("reward", Reward.class));
-        var position = context.requireOne(Parameter.key("position", Vector3d.class));
+        var position = context.one(Parameter.key("position", Vector3d.class)).orElse(player.blockPosition().toDouble().add(0.5, 0.5, 0.5));
         if (crate.give(player, new RewardValueHolder(reward, BigDecimal.ZERO), player.serverLocation().withPosition(position))) {
             CrateCrate.get().sendMessage((Audience & LocaleSource) context.cause().audience(), "command.crate.give.success",
                     "player", player.name(),
                     "crate", crate.id(),
                     "reward", reward.id(),
-                    "position", position);
+                    "position", position.toString());
         } else {
             throw new CommandException(CrateCrate.get().getMessage("command.crate.give.failure", ((LocaleSource) context.cause().audience()).locale(),
                     "player", player.name(),

@@ -159,6 +159,10 @@ public final class Reward extends Component<BigDecimal> {
 
             var prizes = new ArrayList<PrizeValueHolder<?, ?>>();
             for (ConfigurationNode prize : node.node("prizes").childrenList()) {
+                var type = Config.resolvePrizeType(prize);
+
+                System.out.println("Type: " + type.name());
+
                 prizes.add((PrizeValueHolder<?, ?>) Config.resolvePrizeType(prize).deserializeReference(prize));
             }
 
@@ -206,6 +210,10 @@ public final class Reward extends Component<BigDecimal> {
             return new RewardValueHolder(reward, value);
         }
 
+        @Override
+        public boolean matches(ConfigurationNode node) {
+            return true;
+        }
     }
 
 }

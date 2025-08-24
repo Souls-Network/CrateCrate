@@ -42,16 +42,29 @@ public final class CirclePath extends Path {
         double shift = node.node("shift").getDouble(0.0);
         double speed = node.node("speed").getDouble(1.0);
 
-        Vector3d scale = Vector3d.from(
-            node.node("scale").childrenList().get(0).getDouble(1.0),
-            node.node("scale").childrenList().get(1).getDouble(1.0),
-            node.node("scale").childrenList().get(2).getDouble(1.0)
-        );
-        Vector3d axis = Vector3d.from(
-            node.node("axis").childrenList().get(0).getDouble(0.0),
-            node.node("axis").childrenList().get(1).getDouble(1.0),
-            node.node("axis").childrenList().get(2).getDouble(0.0)
-        );
+        Vector3d scale = Vector3d.ONE;
+
+        if(node.hasChild("scale")) {
+            scale = Vector3d.from(
+                    node.node("scale").childrenList().get(0).getDouble(1.0),
+                    node.node("scale").childrenList().get(1).getDouble(1.0),
+                    node.node("scale").childrenList().get(2).getDouble(1.0)
+            );
+        }
+
+        Vector3d axis = Vector3d.UNIT_Y;
+
+        if(node.hasChild("axis")) {
+            axis = Vector3d.from(
+                    node.node("axis").childrenList().get(0).getDouble(0.0),
+                    node.node("axis").childrenList().get(1).getDouble(1.0),
+                    node.node("axis").childrenList().get(2).getDouble(0.0)
+            );
+        }
+
+
+        System.out.println("Loading: circle");
+
         return new CirclePath(interval, precision, segments, shift, speed, scale, axis);
     }
 

@@ -10,6 +10,7 @@ import org.spongepowered.api.item.inventory.*;
 import org.spongepowered.api.item.inventory.menu.ClickType;
 import org.spongepowered.api.item.inventory.menu.InventoryMenu;
 import org.spongepowered.api.item.inventory.type.ViewableInventory;
+import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.plugin.PluginContainer;
 
@@ -57,8 +58,10 @@ public final class View {
      */
     public View define(Layout layout) {
         for (int i = 0; i < inventory.capacity(); i++) {
+            System.out.println("BLARGE! " + i +" " + layout.getElements().getOrDefault(i, Element.EMPTY));
             set(layout.getElements().getOrDefault(i, Element.EMPTY), i);
         }
+
         return this;
     }
 
@@ -87,7 +90,7 @@ public final class View {
      * Sets the display item of a slot without modifying the click action.
      */
     public void set(ItemStack item, int index) {
-        inventory.set(index, item);
+        System.out.println("MERB: " + index + " " + item.type().key(RegistryTypes.ITEM_TYPE) + " " + inventory.set(index, item).type());
     }
 
     private boolean onClick(Cause cause, Container ignoredContainer, Slot slot, int slotIndex, ClickType<?> clickType) {

@@ -12,6 +12,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.util.Tuple;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.gson.GsonConfigurationLoader;
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
 import org.spongepowered.configurate.serialize.SerializationException;
 
@@ -79,12 +80,12 @@ public final class Config {
 
             Files.createDirectories(path);
 
-            return Files.list(path).map(Path::toString).map(s -> {
-                var node = load(s);
+            return Files.list(path).map(s -> {
+                var node = load(s.toString());
 
                 if(node == null) return null;
 
-                return Tuple.of(s.split("\\.")[0], node);
+                return Tuple.of(s.getFileName().toString().split("\\.")[0], node);
             }).toList();
         } catch (IOException e) {
             return List.of();
@@ -95,7 +96,7 @@ public final class Config {
         Path path = DIRECTORY.resolve(name);
 
         try {
-            return HoconConfigurationLoader.builder().path(path).build().load();
+            return GsonConfigurationLoader.builder().path(path).build().load();
         } catch (ConfigurateException e) {
             CrateCrate.get().logger().error("Failed to load: " + name);
             return null;
@@ -130,14 +131,34 @@ public final class Config {
     ) throws SerializationException {
         var identifier = Optional.ofNullable(node.getString()).orElse("");
         if (registry.containsKey(identifier)) {
-            return types.get(registry.get(identifier).getClass().getName());
+
+            var typeType = types.get(registry.get(identifier).getClass().getName());
+
+            if(typeType == null) {
+                throw  new SerializationException("Type: " + identifier + " is null!");
+            }
+
+            return typeType;
         }
         if (node.hasChild("type")) {
             var type = node.node("type").getString();
             if (!types.containsKey(type)) {
                 throw new SerializationException(node.node("type"), component, "Unknown type " + type + ".");
             }
-            return types.get(type);
+            var typeType = types.get(type);
+
+            if(typeType == null) {
+                throw  new SerializationException("Type: " + type + " is null!");
+            }
+
+            return typeType;
+        } else {
+            for (var type : types.values()) {
+                if(type.matches(node)) {
+                    System.out.println("Testing this crap: " + type);
+                    return type;
+                }
+            }
         }
 
         throw new SerializationException(node, component, "Unable to identify type.");

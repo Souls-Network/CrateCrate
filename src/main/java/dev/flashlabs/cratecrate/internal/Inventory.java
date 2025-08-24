@@ -28,8 +28,8 @@ public final class Inventory {
             CLOSE = Element.of(item(ItemTypes.BARRIER.get(), Component.text("Close")), a -> a.callback(v -> a.getPlayer().closeInventory()));
     public static final Layout
             MENU_LAYOUT = Layout.builder(3, 9)
-            .set(Element.of(item(ItemTypes.YELLOW_STAINED_GLASS_PANE.get())), 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26)
-            .set(Element.of(item(ItemTypes.ORANGE_STAINED_GLASS_PANE.get())), 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25)
+            .set(Element.of(item(ItemTypes.STONE.get())), 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26)
+//            .set(Element.of(item(ItemTypes.ORANGE_STAINED_GLASS_PANE.get())), 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25)
             .build(),
             PAGE_LAYOUT = Layout.builder(6, 9)
                     .set(Element.of(item(ItemTypes.YELLOW_STAINED_GLASS_PANE.get())), 0, 2, 4, 6, 8, 18, 26, 36, 38, 40, 42, 44, 46, 52)
@@ -44,6 +44,9 @@ public final class Inventory {
                     .build();
 
     public static View menu(Component title, Map<Integer, Element> elements) {
+        System.out.println("LARP LARP " + elements);
+
+
         return View.builder(ContainerTypes.GENERIC_9X3.get())
                 .title(title)
                 .build(CrateCrate.get().getContainer())
@@ -54,6 +57,7 @@ public final class Inventory {
     }
 
     public static Page page(Component title, List<Element> elements, Element back) {
+
         return Page.builder(ContainerTypes.GENERIC_9X6.get())
                 .title(c -> title)
                 .layout(PAGE_LAYOUT)

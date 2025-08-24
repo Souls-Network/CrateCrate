@@ -1,21 +1,12 @@
 package dev.flashlabs.flashlibs.translation;
 
 import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.gson.GsonConfigurationLoader;
-import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
-import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
@@ -26,11 +17,9 @@ import java.util.stream.Collectors;
  */
 final class NodeResourceBundle extends ResourceBundle {
 
-    static final Control CONTROL = new Control();
-
     private final Map<String, Object> map = new HashMap<>();
 
-    private NodeResourceBundle(ConfigurationNode node) {
+    NodeResourceBundle(ConfigurationNode node) {
         load(node);
     }
 
@@ -69,42 +58,4 @@ final class NodeResourceBundle extends ResourceBundle {
 
         };
     }
-
-    /**
-     * Custom {@link ResourceBundle.Control} implementation. This supports Hocon
-     * (.conf), Json (.json), and Yaml (.yaml) via Configurate, as well as UTF-8
-     * encoded properties files .
-     */
-    private static final class Control extends ResourceBundle.Control {
-
-        private static final List<String> FORMATS = List.of("conf", "json", "yaml", "properties");
-
-        @Override
-        public List<String> getFormats(String baseName) {
-            return FORMATS;
-        }
-
-        @Override
-        public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader, boolean reload) throws IOException {
-            var url = loader.getResource(toResourceName(toBundleName(baseName, locale), format));
-            if (url == null) {
-                return null;
-            }
-            return switch (format) {
-                case "conf" -> new NodeResourceBundle(HoconConfigurationLoader.builder().url(url).build().load());
-                case "json" -> new NodeResourceBundle(GsonConfigurationLoader.builder().url(url).build().load());
-                case "yaml" -> new NodeResourceBundle(YamlConfigurationLoader.builder().url(url).build().load());
-                case "properties" -> {
-                    var connection = url.openConnection();
-                    connection.setUseCaches(!reload);
-                    try (var stream = connection.getInputStream()) {
-                        yield new PropertyResourceBundle(new InputStreamReader(stream, StandardCharsets.UTF_8));
-                    }
-                }
-                default -> throw new AssertionError(format);
-            };
-        }
-
-    }
-
 }

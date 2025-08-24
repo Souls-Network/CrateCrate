@@ -19,7 +19,11 @@ public abstract class Opener {
     public abstract boolean open(ServerPlayer player, Crate crate, ServerLocation location);
 
     public static Opener deserialize(ConfigurationNode node) {
-        var type = Optional.ofNullable(node.isMap() ? node.getString() : node.node("type").getString()).map(String::toUpperCase).map(Type::valueOf).orElseThrow(AssertionError::new);
+        var type = Optional.ofNullable(node.isMap() ? node.getString() : node.node("type").getString()).map(String::toUpperCase).map(Type::valueOf).orElse(null);
+
+        System.out.println("Sad Rawr: " + node);
+
+        if(type == null) return null;
 
         return switch (type) {
             case GUI -> GuiOpener.deserialize(node);

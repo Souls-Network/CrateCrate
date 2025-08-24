@@ -205,6 +205,10 @@ public final class Crate extends Component<Void> {
             throw new AssertionError("Crates cannot be referenced.");
         }
 
+        @Override
+        public boolean matches(ConfigurationNode node) {
+            return true;
+        }
     }
 
 }

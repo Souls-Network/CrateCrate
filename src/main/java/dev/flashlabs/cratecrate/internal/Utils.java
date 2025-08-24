@@ -3,6 +3,7 @@ package dev.flashlabs.cratecrate.internal;
 import dev.flashlabs.cratecrate.CrateCrate;
 import dev.flashlabs.cratecrate.component.*;
 import dev.flashlabs.cratecrate.component.key.Key;
+import dev.flashlabs.flashlibs.inventory.Action;
 import dev.flashlabs.flashlibs.inventory.Element;
 import dev.flashlabs.flashlibs.inventory.Page;
 import dev.flashlabs.flashlibs.inventory.View;
@@ -22,20 +23,37 @@ import org.spongepowered.api.world.server.ServerLocation;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public final class Utils {
 
     public static Page preview(Crate crate, Element back) {
+        List<Element> list = new ArrayList<>();
+
+        System.out.println("Test: " + crate.rewards().size() + " " + crate.rewards());
+
+        for (RewardValueHolder r : crate.rewards()) {
+            Element element = Element.of(r.icon(), new Consumer<Action.Click>() {
+                @Override
+                public void accept(Action.Click a) {
+                    a.callback(v -> {
+                        preview(r, Element.of(r.icon(), new Consumer<Action.Click>() {
+                            @Override
+                            public void accept(Action.Click a2) {
+                                a2.callback(v2 -> {
+                                    v2.open(a2.getPlayer());
+                                });
+                            }
+                        })).open(a.getPlayer());
+                    });
+                }
+            });
+            list.add(element);
+        }
         return Inventory.page(
                 crate.name(Optional.empty()),
-                crate.rewards().stream()
-                        .map(r -> Element.of(r.icon(), a -> a.callback(v -> {
-                            preview(r, Element.of(r.icon(), a2 -> a2.callback(v2 -> {
-                                v.open(a2.getPlayer());
-                            }))).open(a.getPlayer());
-                        })))
-                        .collect(Collectors.toList()),
+                list,
                 back
         );
     }
