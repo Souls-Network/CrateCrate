@@ -19,10 +19,11 @@
 
 package ca.landonjw.gooeylibs2.api.button;
 
-import net.minecraft.core.component.DataComponentType;
-import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.api.data.Key;
+import org.spongepowered.api.data.value.Value;
+import org.spongepowered.api.item.inventory.ItemStack;
 
 import java.util.function.Consumer;
 
@@ -30,13 +31,13 @@ public class GooeyButton extends ButtonBase {
 
     private final Consumer<ButtonAction> onClick;
 
-    protected GooeyButton(@NotNull ItemStack display, @Nullable Consumer<ButtonAction> onClick) {
+    protected GooeyButton(@NonNull ItemStack display, @Nullable Consumer<ButtonAction> onClick) {
         super(display);
         this.onClick = onClick;
     }
 
     @Override
-    public void onClick(@NotNull ButtonAction action) {
+    public void onClick(@NonNull ButtonAction action) {
         if (onClick != null) onClick.accept(action);
     }
 
@@ -55,13 +56,13 @@ public class GooeyButton extends ButtonBase {
         protected ItemStack display;
         protected Consumer<ButtonAction> onClick;
 
-        public Builder display(@NotNull ItemStack display) {
+        public Builder display(@NonNull ItemStack display) {
             this.display = display.copy();
             return this;
         }
 
-        public <T> Builder with(DataComponentType<T> type, T value) {
-            this.display.set(type, value);
+        public <T extends Value<V>, V> Builder with(Key<T> type, V value) {
+            this.display.offer(type, value);
             return this;
         }
 

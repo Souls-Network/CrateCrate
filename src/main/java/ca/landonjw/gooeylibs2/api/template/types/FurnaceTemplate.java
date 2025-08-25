@@ -24,12 +24,12 @@ import ca.landonjw.gooeylibs2.api.helpers.TemplateHelper;
 import ca.landonjw.gooeylibs2.api.template.Template;
 import ca.landonjw.gooeylibs2.api.template.TemplateType;
 import ca.landonjw.gooeylibs2.api.template.slot.TemplateSlotDelegate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class FurnaceTemplate extends Template {
 
-    public FurnaceTemplate(@NotNull TemplateSlotDelegate[] slots) {
+    public FurnaceTemplate(@NonNull TemplateSlotDelegate[] slots) {
         super(TemplateType.FURNACE, slots);
     }
 

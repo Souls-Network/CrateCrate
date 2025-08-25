@@ -19,23 +19,23 @@
 
 package ca.landonjw.gooeylibs2.api.data;
 
-import com.google.common.collect.Maps;
-import org.jetbrains.annotations.NotNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
 public class EventEmitter<T> implements Subject<T> {
 
-    private final Map<Object, Consumer<T>> observers = Maps.newHashMap();
+    private final Map<Object, Consumer<T>> observers = new HashMap<>();
 
     @Override
-    public void subscribe(@NotNull Object subscriber, @NotNull Consumer<T> consumer) {
+    public void subscribe(@NonNull Object subscriber, @NonNull Consumer<T> consumer) {
         this.observers.put(subscriber, consumer);
     }
 
     @Override
-    public void unsubscribe(@NotNull Object subscriber) {
+    public void unsubscribe(@NonNull Object subscriber) {
         this.observers.remove(subscriber);
     }
 

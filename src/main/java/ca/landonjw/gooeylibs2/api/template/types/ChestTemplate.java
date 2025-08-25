@@ -25,8 +25,8 @@ import ca.landonjw.gooeylibs2.api.template.LineType;
 import ca.landonjw.gooeylibs2.api.template.Template;
 import ca.landonjw.gooeylibs2.api.template.TemplateType;
 import ca.landonjw.gooeylibs2.api.template.slot.TemplateSlotDelegate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Iterator;
 import java.util.List;
@@ -35,7 +35,7 @@ public class ChestTemplate extends Template {
 
     protected static final int COLUMNS = 9;
 
-    public ChestTemplate(@NotNull TemplateSlotDelegate[] slots) {
+    public ChestTemplate(@NonNull TemplateSlotDelegate[] slots) {
         super(TemplateType.CHEST, slots);
     }
 
@@ -65,7 +65,7 @@ public class ChestTemplate extends Template {
         return this;
     }
 
-    public ChestTemplate rowFromList(int row, @NotNull List<Button> buttons) {
+    public ChestTemplate rowFromList(int row, @NonNull List<Button> buttons) {
         Iterator<Button> iterator = buttons.iterator();
         if (row < 0 || row >= getRows()) return this;
         for (int col = 0; col < COLUMNS; col++) {
@@ -82,7 +82,7 @@ public class ChestTemplate extends Template {
         return this;
     }
 
-    public ChestTemplate columnFromList(int col, @NotNull List<Button> buttons) {
+    public ChestTemplate columnFromList(int col, @NonNull List<Button> buttons) {
         Iterator<Button> iterator = buttons.iterator();
         if (col < 0 || col >= COLUMNS) return this;
         for (int row = 0; row < getRows(); row++) {
@@ -91,7 +91,7 @@ public class ChestTemplate extends Template {
         return this;
     }
 
-    public ChestTemplate line(@NotNull LineType lineType, int startRow, int startCol, int length, @Nullable Button button) {
+    public ChestTemplate line(@NonNull LineType lineType, int startRow, int startCol, int length, @Nullable Button button) {
         if (lineType == LineType.HORIZONTAL) {
             if (startRow < 0 || startRow > getRows()) return this;
 
@@ -110,7 +110,7 @@ public class ChestTemplate extends Template {
         return this;
     }
 
-    public ChestTemplate lineFromList(@NotNull LineType lineType, int startRow, int startCol, int length, @NotNull List<Button> buttons) {
+    public ChestTemplate lineFromList(@NonNull LineType lineType, int startRow, int startCol, int length, @NonNull List<Button> buttons) {
         Iterator<Button> iterator = buttons.iterator();
         if (lineType == LineType.HORIZONTAL) {
             if (startRow < 0 || startRow > getRows()) return this;
@@ -135,7 +135,7 @@ public class ChestTemplate extends Template {
         return this;
     }
 
-    public ChestTemplate squareFromList(int startRow, int startCol, int size, @NotNull List<Button> buttons) {
+    public ChestTemplate squareFromList(int startRow, int startCol, int size, @NonNull List<Button> buttons) {
         rectangleFromList(startRow, startCol, size, size, buttons);
         return this;
     }
@@ -154,7 +154,7 @@ public class ChestTemplate extends Template {
         return this;
     }
 
-    public ChestTemplate rectangleFromList(int startRow, int startCol, int length, int width, @NotNull List<Button> buttons) {
+    public ChestTemplate rectangleFromList(int startRow, int startCol, int length, int width, @NonNull List<Button> buttons) {
         Iterator<Button> iterator = buttons.iterator();
         startRow = Math.max(0, startRow);
         startCol = Math.max(0, startCol);
@@ -186,7 +186,7 @@ public class ChestTemplate extends Template {
         return this;
     }
 
-    public ChestTemplate borderFromList(int startRow, int startCol, int length, int width, @NotNull List<Button> buttons) {
+    public ChestTemplate borderFromList(int startRow, int startCol, int length, int width, @NonNull List<Button> buttons) {
         /*
          * The logic for this will differ from checker because it makes more sense logically
          * to have the iterator move in a line around the border to the end-user,
@@ -234,7 +234,7 @@ public class ChestTemplate extends Template {
         return this;
     }
 
-    public ChestTemplate checkerFromList(int startRow, int startCol, int length, int width, @NotNull List<Button> buttons, @NotNull List<Button> buttons2) {
+    public ChestTemplate checkerFromList(int startRow, int startCol, int length, int width, @NonNull List<Button> buttons, @NonNull List<Button> buttons2) {
         Iterator<Button> iterator1 = buttons.iterator();
         Iterator<Button> iterator2 = buttons2.iterator();
 
@@ -264,7 +264,7 @@ public class ChestTemplate extends Template {
         return this;
     }
 
-    public ChestTemplate fillFromList(@NotNull List<Button> buttons) {
+    public ChestTemplate fillFromList(@NonNull List<Button> buttons) {
         Iterator<Button> iterator = buttons.iterator();
         for (int i = 0; i < getSize(); i++) {
             if (getSlot(i).getButton().isEmpty()) {
@@ -335,7 +335,7 @@ public class ChestTemplate extends Template {
             return this;
         }
 
-        public Builder rowFromList(int row, @NotNull List<Button> buttons) {
+        public Builder rowFromList(int row, @NonNull List<Button> buttons) {
             templateInstance.rowFromList(row, buttons);
             return this;
         }
@@ -345,17 +345,17 @@ public class ChestTemplate extends Template {
             return this;
         }
 
-        public Builder columnFromList(int col, @NotNull List<Button> buttons) {
+        public Builder columnFromList(int col, @NonNull List<Button> buttons) {
             templateInstance.columnFromList(col, buttons);
             return this;
         }
 
-        public Builder line(@NotNull LineType lineType, int startRow, int startCol, int length, @Nullable Button button) {
+        public Builder line(@NonNull LineType lineType, int startRow, int startCol, int length, @Nullable Button button) {
             templateInstance.line(lineType, startRow, startCol, length, button);
             return this;
         }
 
-        public Builder lineFromList(@NotNull LineType lineType, int startRow, int startCol, int length, @NotNull List<Button> buttons) {
+        public Builder lineFromList(@NonNull LineType lineType, int startRow, int startCol, int length, @NonNull List<Button> buttons) {
             templateInstance.lineFromList(lineType, startRow, startCol, length, buttons);
             return this;
         }
@@ -365,7 +365,7 @@ public class ChestTemplate extends Template {
             return this;
         }
 
-        public Builder squareFromList(int startRow, int startCol, int size, @NotNull List<Button> buttons) {
+        public Builder squareFromList(int startRow, int startCol, int size, @NonNull List<Button> buttons) {
             templateInstance.squareFromList(startRow, startCol, size, buttons);
             return this;
         }
@@ -375,7 +375,7 @@ public class ChestTemplate extends Template {
             return this;
         }
 
-        public Builder rectangleFromList(int startRow, int startCol, int length, int width, @NotNull List<Button> buttons) {
+        public Builder rectangleFromList(int startRow, int startCol, int length, int width, @NonNull List<Button> buttons) {
             templateInstance.rectangleFromList(startRow, startCol, length, width, buttons);
             return this;
         }
@@ -385,7 +385,7 @@ public class ChestTemplate extends Template {
             return this;
         }
 
-        public Builder borderFromList(int startRow, int startCol, int length, int width, @NotNull List<Button> buttons) {
+        public Builder borderFromList(int startRow, int startCol, int length, int width, @NonNull List<Button> buttons) {
             templateInstance.borderFromList(startRow, startCol, length, width, buttons);
             return this;
         }
@@ -395,7 +395,7 @@ public class ChestTemplate extends Template {
             return this;
         }
 
-        public Builder checkerFromList(int startRow, int startCol, int length, int width, @NotNull List<Button> buttons, @NotNull List<Button> buttons2) {
+        public Builder checkerFromList(int startRow, int startCol, int length, int width, @NonNull List<Button> buttons, @NonNull List<Button> buttons2) {
             templateInstance.checkerFromList(startRow, startCol, length, width, buttons, buttons2);
             return this;
         }
@@ -405,7 +405,7 @@ public class ChestTemplate extends Template {
             return this;
         }
 
-        public Builder fillFromList(@NotNull List<Button> buttons) {
+        public Builder fillFromList(@NonNull List<Button> buttons) {
             templateInstance.fillFromList(buttons);
             return this;
         }

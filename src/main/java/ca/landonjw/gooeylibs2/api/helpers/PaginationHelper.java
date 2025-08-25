@@ -24,8 +24,8 @@ import ca.landonjw.gooeylibs2.api.button.PlaceholderButton;
 import ca.landonjw.gooeylibs2.api.page.LinkedPage;
 import ca.landonjw.gooeylibs2.api.page.PageAction;
 import ca.landonjw.gooeylibs2.api.template.Template;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,7 @@ public class PaginationHelper {
      *
      * @param pages list of pages in order to link
      */
-    public static void linkPagesTogether(@NotNull List<LinkedPage> pages) {
+    public static void linkPagesTogether(@NonNull List<LinkedPage> pages) {
         for (int i = 0; i < pages.size(); i++) {
             if (i != 0) {
                 pages.get(i).setPrevious(pages.get(i - 1));
@@ -77,9 +77,9 @@ public class PaginationHelper {
      *                    for example specifying {@link LinkedPage#onClose(PageAction)}
      * @return the first page generated, with all pages linked together.
      */
-    public static LinkedPage createPagesFromPlaceholders(@NotNull Template template,
-                                                         @NotNull List<Button> toReplace,
-                                                         @Nullable LinkedPage.Builder pageBuilder) {
+    public static LinkedPage createPagesFromPlaceholders(@NonNull Template template,
+                                                         @NonNull List<Button> toReplace,
+                                                         LinkedPage.Builder pageBuilder) {
         // Get all the indexes of placeholder buttons.
         List<Integer> placeholderIndexes = new ArrayList<>();
 

@@ -22,9 +22,9 @@ package ca.landonjw.gooeylibs2.api.page;
 import ca.landonjw.gooeylibs2.api.data.EventEmitter;
 import ca.landonjw.gooeylibs2.api.template.Template;
 import ca.landonjw.gooeylibs2.api.template.types.InventoryTemplate;
-import net.minecraft.network.chat.Component;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -36,7 +36,7 @@ public abstract class PageBase implements Page {
     private InventoryTemplate inventoryTemplate;
     private Component title;
 
-    public PageBase(@NotNull Template template,
+    public PageBase(@NonNull Template template,
                     @Nullable InventoryTemplate inventoryTemplate,
                     @Nullable Component title) {
         this.template = template;
@@ -49,7 +49,7 @@ public abstract class PageBase implements Page {
         return template;
     }
 
-    public void setTemplate(@NotNull Template template) {
+    public void setTemplate(@NonNull Template template) {
         this.template = template;
         update();
     }
@@ -68,7 +68,7 @@ public abstract class PageBase implements Page {
     }
 
     public void setTitle(@Nullable String title) {
-        this.setTitle(title == null ? null : Component.literal(title));
+        this.setTitle(title == null ? null : Component.text(title));
     }
 
     public void setTitle(@Nullable Component title) {
@@ -76,11 +76,11 @@ public abstract class PageBase implements Page {
         update();
     }
 
-    public void subscribe(@NotNull Object observer, @NotNull Consumer<Page> consumer) {
+    public void subscribe(@NonNull Object observer, @NonNull Consumer<Page> consumer) {
         this.eventEmitter.subscribe(observer, consumer);
     }
 
-    public void unsubscribe(@NotNull Object observer) {
+    public void unsubscribe(@NonNull Object observer) {
         this.eventEmitter.unsubscribe(observer);
     }
 

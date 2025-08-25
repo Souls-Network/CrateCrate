@@ -19,9 +19,9 @@
 
 package ca.landonjw.gooeylibs2.api.button;
 
-import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.api.item.inventory.ItemStack;
 
 import java.util.function.Consumer;
 
@@ -30,12 +30,12 @@ public class InventoryListenerButton extends ButtonBase {
     private final Consumer<ButtonAction> onClick;
 
     public InventoryListenerButton(@Nullable Consumer<ButtonAction> onClick) {
-        super(ItemStack.EMPTY);
+        super(ItemStack.empty());
         this.onClick = onClick;
     }
 
     @Override
-    public void onClick(@NotNull ButtonAction action) {
+    public void onClick(@NonNull ButtonAction action) {
         if (onClick != null) {
             onClick.accept(action);
         }

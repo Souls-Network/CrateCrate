@@ -19,18 +19,18 @@
 
 package ca.landonjw.gooeylibs2.api.data;
 
-import org.jetbrains.annotations.NotNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.function.Consumer;
 
 public interface Subject<T> {
 
-    void subscribe(@NotNull Object observer, @NotNull Consumer<T> consumer);
+    void subscribe(@NonNull Object observer, @NonNull Consumer<T> consumer);
 
-    default void subscribe(@NotNull Object observer, @NotNull Runnable runnable) {
+    default void subscribe(@NonNull Object observer, @NonNull Runnable runnable) {
         this.subscribe(observer, t -> runnable.run());
     }
 
-    void unsubscribe(@NotNull Object observer);
+    void unsubscribe(@NonNull Object observer);
 
 }

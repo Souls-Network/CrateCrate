@@ -19,7 +19,7 @@
 
 package ca.landonjw.gooeylibs2.api.button;
 
-import org.jetbrains.annotations.NotNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -36,7 +36,7 @@ public class RateLimitedButton extends ButtonBase {
 
     private final LinkedList<Instant> lastActionTimes = new LinkedList<>();
 
-    protected RateLimitedButton(@NotNull Button button, int limit, long timeInterval, @NotNull TimeUnit timeUnit) {
+    protected RateLimitedButton(@NonNull Button button, int limit, long timeInterval, @NonNull TimeUnit timeUnit) {
         super(button.getDisplay());
         this.button = button;
         this.limit = limit;
@@ -45,7 +45,7 @@ public class RateLimitedButton extends ButtonBase {
     }
 
     @Override
-    public void onClick(@NotNull ButtonAction action) {
+    public void onClick(@NonNull ButtonAction action) {
         if (isRateLimited()) return;
 
         if (isTopElementAboveTimeThreshold()) lastActionTimes.remove();
@@ -95,7 +95,7 @@ public class RateLimitedButton extends ButtonBase {
             return this;
         }
 
-        public Builder interval(long time, @NotNull TimeUnit timeUnit) {
+        public Builder interval(long time, @NonNull TimeUnit timeUnit) {
             this.timeInterval = time;
             this.timeUnit = timeUnit;
             return this;

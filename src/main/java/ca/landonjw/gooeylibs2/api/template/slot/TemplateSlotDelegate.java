@@ -22,8 +22,8 @@ package ca.landonjw.gooeylibs2.api.template.slot;
 import ca.landonjw.gooeylibs2.api.button.Button;
 import ca.landonjw.gooeylibs2.api.data.EventEmitter;
 import ca.landonjw.gooeylibs2.api.data.Subject;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -61,12 +61,12 @@ public final class TemplateSlotDelegate implements Subject<TemplateSlotDelegate>
     }
 
     @Override
-    public void subscribe(@NotNull Object observer, @NotNull Consumer<TemplateSlotDelegate> consumer) {
+    public void subscribe(@NonNull Object observer, @NonNull Consumer<TemplateSlotDelegate> consumer) {
         this.eventEmitter.subscribe(observer, consumer);
     }
 
     @Override
-    public void unsubscribe(@NotNull Object observer) {
+    public void unsubscribe(@NonNull Object observer) {
         this.eventEmitter.unsubscribe(observer);
     }
 

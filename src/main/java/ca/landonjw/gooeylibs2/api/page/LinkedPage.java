@@ -21,14 +21,10 @@ package ca.landonjw.gooeylibs2.api.page;
 
 import ca.landonjw.gooeylibs2.api.template.Template;
 import ca.landonjw.gooeylibs2.api.template.types.InventoryTemplate;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentContents;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.contents.PlainTextContents;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -51,7 +47,7 @@ public class LinkedPage extends GooeyPage {
     private LinkedPage previous;
     private LinkedPage next;
 
-    public LinkedPage(@NotNull Template template,
+    public LinkedPage(@NonNull Template template,
                       @Nullable InventoryTemplate inventoryTemplate,
                       @Nullable Component title,
                       @Nullable Consumer<PageAction> onOpen,
@@ -125,7 +121,7 @@ public class LinkedPage extends GooeyPage {
         }
 
         @Override
-        public Builder template(@NotNull Template template) {
+        public Builder template(@NonNull Template template) {
             super.template(template);
             return this;
         }
@@ -178,42 +174,33 @@ public class LinkedPage extends GooeyPage {
     }
 
     private Component replace(Component source, Pattern pattern, String replacement) {
-        return this.replaceRecursive(Component.empty(), source, pattern, replacement);
+        return this.replaceRecursive(source, pattern, replacement);
     }
 
-    private Component replaceRecursive(MutableComponent result, Component target, Pattern pattern, String replacement) {
-        if (target instanceof MutableComponent mc) {
-            ComponentContents contents = mc.getContents();
-            if (contents instanceof PlainTextContents text) {
-                if (!text.text().isEmpty()) {
-                    String content = pattern.matcher(text.text()).replaceAll(replacement);
-                    MutableComponent component = Component.literal(content).withStyle(target.getStyle());
+    private Component replaceRecursive(Component target, Pattern pattern, String replacement) {
+        // If this is a TextComponent, process its content
+        if (target instanceof TextComponent text) {
+            String content = text.content();
+            String replaced = pattern.matcher(content).replaceAll(replacement);
 
-                    for (Component child : target.getSiblings()) {
-                        this.replaceRecursive(component, child, pattern, replacement);
-                    }
+            Component base = Component.text(replaced, text.style());
 
-                    result.append(component);
-                } else {
-                    MutableComponent empty = target.plainCopy().withStyle(target.getStyle());
-                    for (Component child : target.getSiblings()) {
-                        this.replaceRecursive(empty, child, pattern, replacement);
-                    }
-
-                    result.append(empty);
-                }
+            // Recurse into children
+            for (Component child : text.children()) {
+                base = base.append(replaceRecursive(child, pattern, replacement));
             }
 
+            return base;
         } else {
-            MutableComponent custom = target.plainCopy().withStyle(target.getStyle());
-            for (Component child : target.getSiblings()) {
-                this.replaceRecursive(custom, child, pattern, replacement);
+            // Non-text component: preserve style, recurse into children
+            Component base = Component.empty().style(target.style());
+
+            for (Component child : target.children()) {
+                base = base.append(replaceRecursive(child, pattern, replacement));
             }
 
-            result.append(custom);
+            return base;
         }
-
-        return result;
     }
 
 }

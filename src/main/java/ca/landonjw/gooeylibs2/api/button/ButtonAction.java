@@ -21,8 +21,8 @@ package ca.landonjw.gooeylibs2.api.button;
 
 import ca.landonjw.gooeylibs2.api.page.Page;
 import ca.landonjw.gooeylibs2.api.template.Template;
-import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.NotNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -36,11 +36,11 @@ public class ButtonAction {
     private final Page page;
     private final int slot;
 
-    public ButtonAction(@NotNull ServerPlayer player,
-                        @NotNull ButtonClick clickType,
-                        @NotNull Button button,
-                        @NotNull Template template,
-                        @NotNull Page page,
+    public ButtonAction(@NonNull ServerPlayer player,
+                        @NonNull ButtonClick clickType,
+                        @NonNull Button button,
+                        @NonNull Template template,
+                        @NonNull Page page,
                         int slot) {
         this.player = Objects.requireNonNull(player);
         this.clickType = Objects.requireNonNull(clickType);

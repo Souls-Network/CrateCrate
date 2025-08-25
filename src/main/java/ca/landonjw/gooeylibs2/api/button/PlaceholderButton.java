@@ -19,8 +19,8 @@
 
 package ca.landonjw.gooeylibs2.api.button;
 
-import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.spongepowered.api.item.inventory.ItemStack;
 
 import java.util.function.Consumer;
 
@@ -28,19 +28,19 @@ public class PlaceholderButton implements Button {
 
     private final Button button;
 
-    public PlaceholderButton(@NotNull Button button) {
+    public PlaceholderButton(@NonNull Button button) {
         this.button = button;
     }
 
     public PlaceholderButton() {
         this(
                 GooeyButton.builder()
-                        .display(ItemStack.EMPTY)
+                        .display(ItemStack.empty())
                         .build()
         );
     }
 
-    public static PlaceholderButton of(@NotNull Button button) {
+    public static PlaceholderButton of(@NonNull Button button) {
         return new PlaceholderButton(button);
     }
 
@@ -50,17 +50,17 @@ public class PlaceholderButton implements Button {
     }
 
     @Override
-    public void onClick(@NotNull ButtonAction action) {
+    public void onClick(@NonNull ButtonAction action) {
         button.onClick(action);
     }
 
     @Override
-    public void subscribe(@NotNull Object observer, @NotNull Consumer<Button> consumer) {
+    public void subscribe(@NonNull Object observer, @NonNull Consumer<Button> consumer) {
         button.subscribe(observer, consumer);
     }
 
     @Override
-    public void unsubscribe(@NotNull Object observer) {
+    public void unsubscribe(@NonNull Object observer) {
         button.unsubscribe(observer);
     }
 

@@ -24,15 +24,15 @@ import ca.landonjw.gooeylibs2.api.helpers.TemplateHelper;
 import ca.landonjw.gooeylibs2.api.template.Template;
 import ca.landonjw.gooeylibs2.api.template.TemplateType;
 import ca.landonjw.gooeylibs2.api.template.slot.TemplateSlotDelegate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Iterator;
 import java.util.List;
 
 public class CraftingTableTemplate extends Template {
 
-    protected CraftingTableTemplate(@NotNull TemplateSlotDelegate[] slots) {
+    protected CraftingTableTemplate(@NonNull TemplateSlotDelegate[] slots) {
         super(TemplateType.CRAFTING_TABLE, slots);
     }
 
@@ -64,7 +64,7 @@ public class CraftingTableTemplate extends Template {
         return this;
     }
 
-    public CraftingTableTemplate fillFromList(@NotNull List<Button> buttons) {
+    public CraftingTableTemplate fillFromList(@NonNull List<Button> buttons) {
         Iterator<Button> iterator = buttons.iterator();
         for (int i = 0; i < getSize(); i++) {
             if (!getSlot(i).getButton().isPresent()) {
@@ -83,7 +83,7 @@ public class CraftingTableTemplate extends Template {
         return this;
     }
 
-    public CraftingTableTemplate fillGridFromList(@NotNull List<Button> buttons) {
+    public CraftingTableTemplate fillGridFromList(@NonNull List<Button> buttons) {
         Iterator<Button> iterator = buttons.iterator();
         for (int i = 1; i < 10; i++) {
             if (!getSlot(i).getButton().isPresent()) {
@@ -153,7 +153,7 @@ public class CraftingTableTemplate extends Template {
             return this;
         }
 
-        public Builder fillFromList(@NotNull List<Button> buttons) {
+        public Builder fillFromList(@NonNull List<Button> buttons) {
             templateInstance.fillFromList(buttons);
             return this;
         }
@@ -163,7 +163,7 @@ public class CraftingTableTemplate extends Template {
             return this;
         }
 
-        public Builder fillGridFromList(@NotNull List<Button> buttons) {
+        public Builder fillGridFromList(@NonNull List<Button> buttons) {
             templateInstance.fillGridFromList(buttons);
             return this;
         }

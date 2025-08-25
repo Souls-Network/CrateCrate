@@ -19,7 +19,7 @@
 
 package ca.landonjw.gooeylibs2.api.data;
 
-import org.jetbrains.annotations.NotNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.function.Consumer;
 
@@ -37,12 +37,12 @@ public abstract class UpdateEmitter<T> implements Subject<T> {
     }
 
     @Override
-    public void subscribe(@NotNull Object observer, @NotNull Consumer<T> consumer) {
+    public void subscribe(@NonNull Object observer, @NonNull Consumer<T> consumer) {
         this.eventEmitter.subscribe(observer, consumer);
     }
 
     @Override
-    public void unsubscribe(@NotNull Object observer) {
+    public void unsubscribe(@NonNull Object observer) {
         this.eventEmitter.unsubscribe(observer);
     }
 

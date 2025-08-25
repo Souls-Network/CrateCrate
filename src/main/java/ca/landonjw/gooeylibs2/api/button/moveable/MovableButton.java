@@ -21,11 +21,11 @@ package ca.landonjw.gooeylibs2.api.button.moveable;
 
 import ca.landonjw.gooeylibs2.api.button.ButtonAction;
 import ca.landonjw.gooeylibs2.api.button.GooeyButton;
-import net.minecraft.core.component.DataComponentType;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.api.data.Key;
+import org.spongepowered.api.data.value.Value;
+import org.spongepowered.api.item.inventory.ItemStack;
 
 import java.util.Collection;
 import java.util.function.Consumer;
@@ -35,7 +35,7 @@ public class MovableButton extends GooeyButton implements Movable {
     private Consumer<MovableButtonAction> onPickup;
     private Consumer<MovableButtonAction> onDrop;
 
-    protected MovableButton(@NotNull ItemStack display,
+    protected MovableButton(@NonNull ItemStack display,
                             @Nullable Consumer<ButtonAction> onClick,
                             @Nullable Consumer<MovableButtonAction> onPickup,
                             @Nullable Consumer<MovableButtonAction> onDrop) {
@@ -65,7 +65,7 @@ public class MovableButton extends GooeyButton implements Movable {
         protected Consumer<MovableButtonAction> onPickup;
         protected Consumer<MovableButtonAction> onDrop;
 
-        public Builder display(@NotNull ItemStack display) {
+        public Builder display(@NonNull ItemStack display) {
             super.display(display);
             return this;
         }
@@ -105,7 +105,7 @@ public class MovableButton extends GooeyButton implements Movable {
         }
 
         @Override
-        public <T> GooeyButton.Builder with(DataComponentType<T> type, T value) {
+        public <T extends Value<V>, V> GooeyButton.Builder with(Key<T> type, V value) {
             super.with(type, value);
             return this;
         }

@@ -21,9 +21,9 @@ package ca.landonjw.gooeylibs2.api.page;
 
 import ca.landonjw.gooeylibs2.api.template.Template;
 import ca.landonjw.gooeylibs2.api.template.types.InventoryTemplate;
-import net.minecraft.network.chat.Component;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.function.Consumer;
 
@@ -31,7 +31,7 @@ public class GooeyPage extends PageBase {
 
     private final Consumer<PageAction> onOpen, onClose;
 
-    public GooeyPage(@NotNull Template template,
+    public GooeyPage(@NonNull Template template,
                      @Nullable InventoryTemplate inventoryTemplate,
                      @Nullable Component title,
                      @Nullable Consumer<PageAction> onOpen,
@@ -42,12 +42,12 @@ public class GooeyPage extends PageBase {
     }
 
     @Override
-    public void onOpen(@NotNull PageAction action) {
+    public void onOpen(@NonNull PageAction action) {
         if (onOpen != null) onOpen.accept(action);
     }
 
     @Override
-    public void onClose(@NotNull PageAction action) {
+    public void onClose(@NonNull PageAction action) {
         if (onClose != null) onClose.accept(action);
     }
 
@@ -67,7 +67,7 @@ public class GooeyPage extends PageBase {
                 return this;
             }
 
-            return this.title(Component.literal(title));
+            return this.title(Component.text(title));
         }
 
         public Builder title(@Nullable Component title) {
@@ -75,7 +75,7 @@ public class GooeyPage extends PageBase {
             return this;
         }
 
-        public Builder template(@NotNull Template template) {
+        public Builder template(@NonNull Template template) {
             if (template instanceof InventoryTemplate) {
                 throw new IllegalArgumentException("you can not use an inventory template here!");
             }

@@ -24,12 +24,11 @@ import ca.landonjw.gooeylibs2.api.button.ButtonAction;
 import ca.landonjw.gooeylibs2.api.button.GooeyButton;
 import ca.landonjw.gooeylibs2.api.page.LinkedPage;
 import ca.landonjw.gooeylibs2.api.page.Page;
-import net.minecraft.core.component.DataComponentType;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.api.data.Key;
+import org.spongepowered.api.data.value.Value;
+import org.spongepowered.api.item.inventory.ItemStack;
 
 import java.util.function.Consumer;
 
@@ -37,15 +36,15 @@ public class LinkedPageButton extends GooeyButton {
 
     private LinkType linkType;
 
-    protected LinkedPageButton(@NotNull ItemStack display,
+    protected LinkedPageButton(@NonNull ItemStack display,
                                @Nullable Consumer<ButtonAction> onClick,
-                               @NotNull LinkType linkType) {
+                               @NonNull LinkType linkType) {
         super(display, onClick);
         this.linkType = linkType;
     }
 
     @Override
-    public void onClick(@NotNull ButtonAction action) {
+    public void onClick(@NonNull ButtonAction action) {
         super.onClick(action);
         if (action.getPage() instanceof LinkedPage) {
             LinkedPage linkedPage = (LinkedPage) action.getPage();
@@ -69,7 +68,7 @@ public class LinkedPageButton extends GooeyButton {
         private LinkType linkType;
 
         @Override
-        public Builder display(@NotNull ItemStack display) {
+        public Builder display(@NonNull ItemStack display) {
             super.display(display);
             return this;
         }
@@ -86,13 +85,13 @@ public class LinkedPageButton extends GooeyButton {
             return this;
         }
 
-        public Builder linkType(@NotNull LinkType linkType) {
+        public Builder linkType(@NonNull LinkType linkType) {
             this.linkType = linkType;
             return this;
         }
 
         @Override
-        public <T> Builder with(DataComponentType<T> type, T value) {
+        public <T extends Value<V>, V> Builder with(Key<T> type, V value) {
             super.with(type, value);
             return this;
         }

@@ -17,30 +17,34 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package ca.landonjw.gooeylibs2.api.page;
+package ca.landonjw.gooeylibs2.api.button.moveable;
 
-import ca.landonjw.gooeylibs2.api.data.Subject;
+import ca.landonjw.gooeylibs2.api.button.Button;
+import ca.landonjw.gooeylibs2.api.button.ButtonAction;
+import ca.landonjw.gooeylibs2.api.button.ButtonClick;
+import ca.landonjw.gooeylibs2.api.page.Page;
 import ca.landonjw.gooeylibs2.api.template.Template;
-import ca.landonjw.gooeylibs2.api.template.types.InventoryTemplate;
-import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
-import java.util.Optional;
+public class MovableButtonAction extends ButtonAction {
 
-public interface Page extends Subject<Page> {
+    private boolean cancelled;
 
-    Template getTemplate();
-
-    default Optional<InventoryTemplate> getInventoryTemplate() {
-        return Optional.empty();
+    public MovableButtonAction(@NonNull ServerPlayer player,
+                               @NonNull ButtonClick clickType,
+                               @NonNull Button button,
+                               @NonNull Template template,
+                               @NonNull Page page, int slot) {
+        super(player, clickType, button, template, page, slot);
     }
 
-    Component getTitle();
-
-    default void onOpen(@NonNull PageAction action) {
+    public void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
     }
 
-    default void onClose(@NonNull PageAction action) {
+    public boolean isCancelled() {
+        return cancelled;
     }
 
 }

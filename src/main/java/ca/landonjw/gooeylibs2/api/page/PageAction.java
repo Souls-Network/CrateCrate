@@ -19,15 +19,16 @@
 
 package ca.landonjw.gooeylibs2.api.page;
 
-import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.NotNull;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
 public class PageAction {
 
     private final ServerPlayer player;
     private final Page page;
 
-    public PageAction(@NotNull ServerPlayer player, @NotNull Page page) {
+    public PageAction(@NonNull ServerPlayer player, @NonNull Page page) {
         this.player = player;
         this.page = page;
     }

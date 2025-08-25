@@ -24,15 +24,15 @@ import ca.landonjw.gooeylibs2.api.helpers.TemplateHelper;
 import ca.landonjw.gooeylibs2.api.template.Template;
 import ca.landonjw.gooeylibs2.api.template.TemplateType;
 import ca.landonjw.gooeylibs2.api.template.slot.TemplateSlotDelegate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Iterator;
 import java.util.List;
 
 public class BrewingStandTemplate extends Template {
 
-    protected BrewingStandTemplate(@NotNull TemplateSlotDelegate[] slots) {
+    protected BrewingStandTemplate(@NonNull TemplateSlotDelegate[] slots) {
         super(TemplateType.BREWING_STAND, slots);
     }
 
@@ -69,7 +69,7 @@ public class BrewingStandTemplate extends Template {
         return this;
     }
 
-    public BrewingStandTemplate bottlesFromList(@NotNull List<Button> buttons) {
+    public BrewingStandTemplate bottlesFromList(@NonNull List<Button> buttons) {
         Iterator<Button> iterator = buttons.iterator();
         for (int i = 0; i < 3; i++) bottle(i, (iterator.hasNext()) ? iterator.next() : null);
         return this;
@@ -139,7 +139,7 @@ public class BrewingStandTemplate extends Template {
             return this;
         }
 
-        public Builder bottlesFromList(@NotNull List<Button> buttons) {
+        public Builder bottlesFromList(@NonNull List<Button> buttons) {
             templateInstance.bottlesFromList(buttons);
             return this;
         }

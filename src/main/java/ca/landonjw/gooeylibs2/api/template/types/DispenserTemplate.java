@@ -24,15 +24,15 @@ import ca.landonjw.gooeylibs2.api.helpers.TemplateHelper;
 import ca.landonjw.gooeylibs2.api.template.Template;
 import ca.landonjw.gooeylibs2.api.template.TemplateType;
 import ca.landonjw.gooeylibs2.api.template.slot.TemplateSlotDelegate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Iterator;
 import java.util.List;
 
 public class DispenserTemplate extends Template {
 
-    protected DispenserTemplate(@NotNull TemplateSlotDelegate[] slots) {
+    protected DispenserTemplate(@NonNull TemplateSlotDelegate[] slots) {
         super(TemplateType.DISPENSER, slots);
     }
 
@@ -40,7 +40,7 @@ public class DispenserTemplate extends Template {
         return getSlot(row * 3 + col);
     }
 
-    public DispenserTemplate set(int index, @Nullable Button button) {
+    public DispenserTemplate set(int index, @NonNull Button button) {
         getSlot(index).setButton(button);
         return this;
     }
@@ -58,7 +58,7 @@ public class DispenserTemplate extends Template {
         return this;
     }
 
-    public DispenserTemplate fillFromList(@NotNull List<Button> buttons) {
+    public DispenserTemplate fillFromList(@NonNull List<Button> buttons) {
         Iterator<Button> iterator = buttons.iterator();
         for (int i = 0; i < getSize(); i++) {
             if (!getSlot(i).getButton().isPresent()) {
@@ -127,7 +127,7 @@ public class DispenserTemplate extends Template {
             return this;
         }
 
-        public Builder fillFromList(@NotNull List<Button> buttons) {
+        public Builder fillFromList(@NonNull List<Button> buttons) {
             templateInstance.fillFromList(buttons);
             return this;
         }

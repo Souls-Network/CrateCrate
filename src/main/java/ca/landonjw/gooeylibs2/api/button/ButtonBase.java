@@ -20,8 +20,8 @@
 package ca.landonjw.gooeylibs2.api.button;
 
 import ca.landonjw.gooeylibs2.api.data.UpdateEmitter;
-import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.spongepowered.api.item.inventory.ItemStack;
 
 import static java.util.Objects.requireNonNull;
 
@@ -29,7 +29,7 @@ public abstract class ButtonBase extends UpdateEmitter<Button> implements Button
 
     private ItemStack display;
 
-    protected ButtonBase(@NotNull ItemStack display) {
+    protected ButtonBase(@NonNull ItemStack display) {
         this.display = requireNonNull(display);
     }
 
@@ -37,7 +37,7 @@ public abstract class ButtonBase extends UpdateEmitter<Button> implements Button
         return display;
     }
 
-    public void setDisplay(@NotNull ItemStack display) {
+    public void setDisplay(@NonNull ItemStack display) {
         this.display = display;
         update();
     }

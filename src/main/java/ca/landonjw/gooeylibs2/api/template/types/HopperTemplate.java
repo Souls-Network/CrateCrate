@@ -24,15 +24,15 @@ import ca.landonjw.gooeylibs2.api.helpers.TemplateHelper;
 import ca.landonjw.gooeylibs2.api.template.Template;
 import ca.landonjw.gooeylibs2.api.template.TemplateType;
 import ca.landonjw.gooeylibs2.api.template.slot.TemplateSlotDelegate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Iterator;
 import java.util.List;
 
 public class HopperTemplate extends Template {
 
-    protected HopperTemplate(@NotNull TemplateSlotDelegate[] slots) {
+    protected HopperTemplate(@NonNull TemplateSlotDelegate[] slots) {
         super(TemplateType.HOPPER, slots);
     }
 
@@ -54,7 +54,7 @@ public class HopperTemplate extends Template {
         return this;
     }
 
-    public HopperTemplate fillFromList(@NotNull List<Button> buttons) {
+    public HopperTemplate fillFromList(@NonNull List<Button> buttons) {
         Iterator<Button> iterator = buttons.iterator();
         for (int i = 0; i < getSize(); i++) {
             if (!getSlot(i).getButton().isPresent()) {
@@ -114,7 +114,7 @@ public class HopperTemplate extends Template {
             return this;
         }
 
-        public Builder fillFromList(@NotNull List<Button> buttons) {
+        public Builder fillFromList(@NonNull List<Button> buttons) {
             templateInstance.fillFromList(buttons);
             return this;
         }

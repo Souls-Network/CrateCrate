@@ -20,14 +20,15 @@
 package ca.landonjw.gooeylibs2.api.button;
 
 import ca.landonjw.gooeylibs2.api.data.Subject;
-import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 
 public interface Button extends Subject<Button> {
 
     ItemStack getDisplay();
 
-    default void onClick(@NotNull ButtonAction action) {
+    default void onClick(@NonNull ButtonAction action) {
     }
 
 }
